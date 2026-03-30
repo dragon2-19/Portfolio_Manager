@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资组合管理系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 投资组合管理系统</h1>
+        </header>
+
+        <main>
+            <section class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-label">总持仓数</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">股票</div>
+                    <div class="stat-value" id="stockCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">债券</div>
+                    <div class="stat-value" id="bondCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">现金</div>
+                    <div class="stat-value" id="cashCount">0</div>
+                </div>
+            </section>
+
+            <section class="action-section">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    ➕ 添加资产
+                </button>
+                <button class="btn btn-secondary" onclick="loadHoldings()">
+                    🔄 刷新数据
+                </button>
+            </section>
+
+            <section class="table-section">
+                <table id="holdingsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>股票代码</th>
+                            <th>资产类型</th>
+                            <th>持有数量</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="holdingsTableBody">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="holdingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">添加资产</h2>
+            <form id="holdingForm" onsubmit="saveHolding(event)">
+                <input type="hidden" id="holdingId">
+                <div class="form-group">
+                    <label for="ticker">股票代码:</label>
+                    <input type="text" id="ticker" required placeholder="如: AAPL">
+                </div>
+                <div class="form-group">
+                    <label for="assetType">资产类型:</label>
+                    <select id="assetType" required>
+                        <option value="STOCK">股票</option>
+                        <option value="BOND">债券</option>
+                        <option value="CASH">现金</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="volume">持有数量:</label>
+                    <input type="number" id="volume" required min="1" placeholder="数量">
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
