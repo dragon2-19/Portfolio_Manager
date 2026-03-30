@@ -1,0 +1,221 @@
+let priceChart = null;
+let currentStock = null;
+let currentRange = '1mo';
+
+// Handle search key press
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        searchStock();
+    }
+}
+
+// Quick search
+function quickSearch(ticker) {
+    document.getElementById('searchInput').value = ticker;
+    searchStock();
+}
+
+// Search stock
+async function searchStock() {
+    const ticker = document.getElementById('searchInput').value.trim().toUpperCase();
+
+    if (!ticker) {
+        alert('请输入股票代码');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${STOCKS_API}/${ticker}`);
+        const stockInfo = await response.json();
+
+        displayStockDetails(stockInfo);
+    } catch (error) {
+        console.error('Error searching stock:', error);
+        alert('搜索失败，请检查股票代码');
+    }
+}
+
+// Display stock details
+async function displayStockDetails(stockInfo) {
+    currentStock = stockInfo;
+
+    // Update stock info
+    document.getElementById('stockName').textContent = stockInfo.name || stockInfo.ticker;
+    document.getElementById('stockTicker').textContent = stockInfo.ticker;
+    document.getElementById('currentPrice').textContent = formatCurrency(stockInfo.currentPrice);
+
+    // Update price change
+    const changeClass = stockInfo.change > 0 ? 'profit-positive' :
+                       stockInfo.change < 0 ? 'profit-negative' : 'profit-neutral';
+    const changeIcon = stockInfo.change > 0 ? '↑' : stockInfo.change < 0 ? '↓' : '→';
+    document.getElementById('priceChange').className = `price-change ${changeClass}`;
+    document.getElementById('priceChange').textContent =
+        `${changeIcon} ${formatCurrency(Math.abs(stockInfo.change))} (${Math.abs(stockInfo.changePercent).toFixed(2)}%)`;
+
+    // Update stats
+    document.getElementById('openPrice').textContent = formatCurrency(stockInfo.open);
+    document.getElementById('highPrice').textContent = formatCurrency(stockInfo.high);
+    document.getElementById('lowPrice').textContent = formatCurrency(stockInfo.low);
+    document.getElementById('volume').textContent = formatNumber(stockInfo.volume);
+    document.getElementById('marketCap').textContent = formatCurrency(stockInfo.marketCap);
+    document.getElementById('lastUpdated').textContent = formatDateTime(stockInfo.lastUpdated);
+
+    // Show details section
+    document.getElementById('stockDetails').style.display = 'block';
+    document.getElementById('searchResults').style.display = 'none';
+
+    // Update price chart
+    updatePriceChart(stockInfo);
+}
+
+// Update price chart
+function updatePriceChart(stockInfo) {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+
+    if (priceChart) {
+        priceChart.destroy();
+    }
+
+    if (!stockInfo.priceHistory || stockInfo.priceHistory.length === 0) {
+        return;
+    }
+
+    const labels = stockInfo.priceHistory.map(point => point.date);
+    const data = stockInfo.priceHistory.map(point => point.price);
+
+    priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: stockInfo.ticker + ' 价格',
+                data: data,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `价格: ${formatCurrency(context.raw)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Change time range
+async function changeRange(range, button) {
+    currentRange = range;
+
+    // Update active button
+    document.querySelectorAll('.chart-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    button.classList.add('active');
+
+    // Reload stock info with new range
+    if (currentStock) {
+        try {
+            const response = await fetch(`${STOCKS_API}/${currentStock.ticker}/history?range=${range}`);
+            const stockInfo = await response.json();
+            displayStockDetails(stockInfo);
+        } catch (error) {
+            console.error('Error loading stock history:', error);
+        }
+    }
+}
+
+// Show add to portfolio modal
+function showAddToPortfolio() {
+    if (!currentStock) {
+        alert('请先搜索股票');
+        return;
+    }
+
+    document.getElementById('addToPortfolioTicker').value = currentStock.ticker;
+    document.getElementById('addToPortfolioPrice').value = currentStock.currentPrice;
+
+    // Set today's date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('addToPortfolioDate').value = today;
+
+    document.getElementById('addToPortfolioModal').style.display = 'block';
+}
+
+// Add to portfolio
+async function addToPortfolio(event) {
+    event.preventDefault();
+
+    const holding = {
+        ticker: document.getElementById('addToPortfolioTicker').value,
+        assetType: document.getElementById('addToPortfolioAssetType').value,
+        volume: parseInt(document.getElementById('addToPortfolioVolume').value),
+        purchasePrice: parseFloat(document.getElementById('addToPortfolioPrice').value),
+        currentPrice: parseFloat(document.getElementById('addToPortfolioPrice').value),
+        purchaseDate: document.getElementById('addToPortfolioDate').value
+    };
+
+    try {
+        const response = await fetch(HOLDINGS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(holding)
+        });
+
+        if (response.ok) {
+            closeAddToPortfolioModal();
+            alert('成功添加到投资组合！');
+        } else {
+            alert('添加失败，请重试');
+        }
+    } catch (error) {
+        console.error('Error adding to portfolio:', error);
+        alert('添加失败，请检查网络连接');
+    }
+}
+
+// Refresh stock info
+async function refreshStockInfo() {
+    if (currentStock) {
+        await searchStock();
+        alert('数据已刷新！');
+    }
+}
+
+// Close add to portfolio modal
+function closeAddToPortfolioModal() {
+    document.getElementById('addToPortfolioModal').style.display = 'none';
+}

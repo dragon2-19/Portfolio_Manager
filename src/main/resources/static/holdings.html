@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资组合 - 持仓详情</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 投资组合</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html" class="nav-link">
+                        <span>📈</span> 仪表板
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="holdings.html" class="nav-link">
+                        <span>💼</span> 持仓详情
+                    </a>
+                </li>
+                <li>
+                    <a href="transactions.html" class="nav-link">
+                        <span>📝</span> 交易记录
+                    </a>
+                </li>
+                <li>
+                    <a href="search.html" class="nav-link">
+                        <span>🔍</span> 股票搜索
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>持仓详情</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        ➕ 添加资产
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadHoldings()">
+                        🔄 刷新
+                    </button>
+                </div>
+            </header>
+
+            <!-- Holdings Stats -->
+            <section class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <div class="stat-label">总持仓数</div>
+                        <div class="stat-value" id="totalCount">0</div>
+                    </div>
+                </div>
+                <div class="stat-card stock">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <div class="stat-label">股票</div>
+                        <div class="stat-value" id="stockCount">0</div>
+                    </div>
+                </div>
+                <div class="stat-card bond">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-label">债券</div>
+                        <div class="stat-value" id="bondCount">0</div>
+                    </div>
+                </div>
+                <div class="stat-card cash">
+                    <div class="stat-icon">💵</div>
+                    <div class="stat-info">
+                        <div class="stat-label">现金</div>
+                        <div class="stat-value" id="cashCount">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Holdings Table -->
+            <section class="table-section">
+                <table id="holdingsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>股票代码</th>
+                            <th>资产类型</th>
+                            <th>持有数量</th>
+                            <th>买入价格</th>
+                            <th>当前价格</th>
+                            <th>总市值</th>
+                            <th>盈亏</th>
+                            <th>收益率</th>
+                            <th>买入日期</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="holdingsTableBody">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="holdingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">添加资产</h2>
+            <form id="holdingForm" onsubmit="saveHolding(event)">
+                <input type="hidden" id="holdingId">
+                <div class="form-group">
+                    <label for="ticker">股票代码:</label>
+                    <input type="text" id="ticker" required placeholder="如: AAPL">
+                </div>
+                <div class="form-group">
+                    <label for="assetType">资产类型:</label>
+                    <select id="assetType" required>
+                        <option value="STOCK">股票</option>
+                        <option value="BOND">债券</option>
+                        <option value="CASH">现金</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="volume">持有数量:</label>
+                    <input type="number" id="volume" required min="1" placeholder="数量">
+                </div>
+                <div class="form-group">
+                    <label for="purchasePrice">买入价格:</label>
+                    <input type="number" id="purchasePrice" step="0.0001" required min="0" placeholder="买入价格">
+                </div>
+                <div class="form-group">
+                    <label for="currentPrice">当前价格:</label>
+                    <input type="number" id="currentPrice" step="0.0001" min="0" placeholder="当前价格">
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">买入日期:</label>
+                    <input type="date" id="purchaseDate" required>
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Price Modal -->
+    <div id="priceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePriceModal()">&times;</span>
+            <h2>更新当前价格</h2>
+            <form id="priceForm" onsubmit="updatePrice(event)">
+                <input type="hidden" id="priceHoldingId">
+                <div class="form-group">
+                    <label for="newPrice">新的当前价格:</label>
+                    <input type="number" id="newPrice" step="0.0001" required min="0" placeholder="新价格">
+                </div>
+                <button type="submit" class="btn btn-primary">更新</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="holdings.js"></script>
+</body>
+</html>

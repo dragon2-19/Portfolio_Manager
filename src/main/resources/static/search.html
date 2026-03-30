@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资组合 - 股票搜索</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 投资组合</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html" class="nav-link">
+                        <span>📈</span> 仪表板
+                    </a>
+                </li>
+                <li>
+                    <a href="holdings.html" class="nav-link">
+                        <span>💼</span> 持仓详情
+                    </a>
+                </li>
+                <li>
+                    <a href="transactions.html" class="nav-link">
+                        <span>📝</span> 交易记录
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="search.html" class="nav-link">
+                        <span>🔍</span> 股票搜索
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>股票搜索</h1>
+            </header>
+
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="输入股票代码（如：AAPL, GOOGL）" onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" onclick="searchStock()">
+                        🔍 搜索
+                    </button>
+                </div>
+                <div class="quick-search">
+                    <span>快速搜索：</span>
+                    <button class="quick-btn" onclick="quickSearch('AAPL')">AAPL</button>
+                    <button class="quick-btn" onclick="quickSearch('GOOGL')">GOOGL</button>
+                    <button class="quick-btn" onclick="quickSearch('MSFT')">MSFT</button>
+                    <button class="quick-btn" onclick="quickSearch('TSLA')">TSLA</button>
+                    <button class="quick-btn" onclick="quickSearch('AMZN')">AMZN</button>
+                </div>
+            </section>
+
+            <!-- Stock Details -->
+            <section id="stockDetails" class="stock-details-section" style="display: none;">
+                <div class="stock-header">
+                    <div class="stock-info">
+                        <h2 id="stockName">股票名称</h2>
+                        <div class="stock-ticker" id="stockTicker">AAPL</div>
+                    </div>
+                    <div class="stock-price">
+                        <div class="current-price" id="currentPrice">$0.00</div>
+                        <div class="price-change" id="priceChange">$0.00 (0.00%)</div>
+                    </div>
+                </div>
+
+                <div class="stock-stats-grid">
+                    <div class="stock-stat">
+                        <div class="stat-label">开盘价</div>
+                        <div class="stat-value" id="openPrice">$0.00</div>
+                    </div>
+                    <div class="stock-stat">
+                        <div class="stat-label">最高价</div>
+                        <div class="stat-value" id="highPrice">$0.00</div>
+                    </div>
+                    <div class="stock-stat">
+                        <div class="stat-label">最低价</div>
+                        <div class="stat-value" id="lowPrice">$0.00</div>
+                    </div>
+                    <div class="stock-stat">
+                        <div class="stat-label">成交量</div>
+                        <div class="stat-value" id="volume">0</div>
+                    </div>
+                    <div class="stock-stat">
+                        <div class="stat-label">市值</div>
+                        <div class="stat-value" id="marketCap">$0.00</div>
+                    </div>
+                    <div class="stock-stat">
+                        <div class="stat-label">更新时间</div>
+                        <div class="stat-value" id="lastUpdated">-</div>
+                    </div>
+                </div>
+
+                <!-- Price Chart -->
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3>📈 价格走势</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" onclick="changeRange('1mo', this)">1月</button>
+                            <button class="chart-btn" onclick="changeRange('3mo', this)">3月</button>
+                            <button class="chart-btn" onclick="changeRange('6mo', this)">6月</button>
+                            <button class="chart-btn" onclick="changeRange('1y', this)">1年</button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="stock-actions">
+                    <button class="btn btn-primary" onclick="showAddToPortfolio()">
+                        ➕ 添加到投资组合
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshStockInfo()">
+                        🔄 刷新数据
+                    </button>
+                </div>
+            </section>
+
+            <!-- Search Results -->
+            <section id="searchResults" class="search-results-section" style="display: none;">
+                <h3>搜索结果</h3>
+                <div id="searchResultsList" class="search-results-list">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add to Portfolio Modal -->
+    <div id="addToPortfolioModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddToPortfolioModal()">&times;</span>
+            <h2>添加到投资组合</h2>
+            <form id="addToPortfolioForm" onsubmit="addToPortfolio(event)">
+                <input type="hidden" id="addToPortfolioTicker">
+                <div class="form-group">
+                    <label for="addToPortfolioAssetType">资产类型:</label>
+                    <select id="addToPortfolioAssetType" required>
+                        <option value="STOCK">股票</option>
+                        <option value="BOND">债券</option>
+                        <option value="CASH">现金</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="addToPortfolioVolume">持有数量:</label>
+                    <input type="number" id="addToPortfolioVolume" required min="1" placeholder="数量">
+                </div>
+                <div class="form-group">
+                    <label for="addToPortfolioPrice">买入价格:</label>
+                    <input type="number" id="addToPortfolioPrice" step="0.0001" required min="0" placeholder="价格">
+                </div>
+                <div class="form-group">
+                    <label for="addToPortfolioDate">买入日期:</label>
+                    <input type="date" id="addToPortfolioDate" required>
+                </div>
+                <button type="submit" class="btn btn-primary">添加</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="search.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 投资组合管理系统 (Portfolio Manager)
 
-一个基于 Spring Boot + MySQL + 前后端分离的投资组合管理系统。
+一个功能完整的投资组合管理系统，集成 Yahoo Finance API、实时图表、历史交易记录和多页面仪表板。
 
 ## 技术栈
 
@@ -9,11 +9,14 @@
 - **Spring Boot 3.4.5**
 - **Spring Data JPA**
 - **MySQL**
+- **Lombok**
+- **Yahoo Finance API**
 
 ### 前端
 - **HTML5**
-- **CSS3**
+- **CSS3** (现代化渐变响应式设计)
 - **JavaScript (ES6+)**
+- **Chart.js** (数据可视化)
 
 ## 项目结构
 
@@ -24,19 +27,35 @@ finalproject1/
 │   │   ├── java/com/drake/
 │   │   │   ├── PortfolioApplication.java      # Spring Boot 主类
 │   │   │   ├── controller/
-│   │   │   │   └── HoldingController.java    # REST API 控制器
+│   │   │   │   ├── HoldingController.java    # 持仓 API 控制器
+│   │   │   │   ├── StockController.java      # 股票 API 控制器
+│   │   │   │   └── TransactionController.java # 交易 API 控制器
 │   │   │   ├── service/
-│   │   │   │   └── HoldingService.java       # 业务逻辑层
+│   │   │   │   ├── HoldingService.java       # 持仓业务逻辑
+│   │   │   │   ├── StockService.java         # 股票服务
+│   │   │   │   └── TransactionService.java   # 交易业务逻辑
 │   │   │   ├── repository/
-│   │   │   │   └── HoldingRepository.java     # 数据访问层
-│   │   │   └── model/
-│   │   │       └── Holding.java               # 实体类
+│   │   │   │   ├── HoldingRepository.java     # 持仓数据访问
+│   │   │   │   └── TransactionRepository.java # 交易数据访问
+│   │   │   ├── model/
+│   │   │   │   ├── Holding.java               # 持仓实体
+│   │   │   │   └── Transaction.java           # 交易实体
+│   │   │   └── dto/
+│   │   │       ├── PortfolioSummary.java      # 投资组合摘要
+│   │   │       └── StockInfo.java             # 股票信息
 │   │   └── resources/
 │   │       ├── application.properties        # 配置文件
 │   │       └── static/
-│   │           ├── index.html                # 前端页面
+│   │           ├── dashboard.html            # 仪表板页面
+│   │           ├── holdings.html             # 持仓详情页面
+│   │           ├── transactions.html         # 交易记录页面
+│   │           ├── search.html               # 股票搜索页面
 │   │           ├── style.css                 # 样式文件
-│   │           └── script.js                 # 脚本文件
+│   │           ├── common.js                 # 公共脚本
+│   │           ├── dashboard.js              # 仪表板脚本
+│   │           ├── holdings.js               # 持仓脚本
+│   │           ├── transactions.js           # 交易脚本
+│   │           └── search.js                 # 搜索脚本
 ├── pom.xml                                    # Maven 配置
 └── README.md                                  # 项目说明
 ```
@@ -68,103 +87,179 @@ CREATE DATABASE IF NOT EXISTS portfolio_db;
 ### 3. 运行后端
 
 ```bash
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.mainClass=com.drake.PortfolioApplication
 ```
 
 后端将在 `http://localhost:8080` 启动。
 
 ### 4. 访问前端
 
-在浏览器中打开：
+在浏览器中打开任意页面：
 
 ```
-http://localhost:8080/index.html
+http://localhost:8080/dashboard.html    # 仪表板
+http://localhost:8080/holdings.html     # 持仓详情
+http://localhost:8080/transactions.html # 交易记录
+http://localhost:8080/search.html       # 股票搜索
 ```
+
+## 功能特性
+
+### 📊 仪表板 (Dashboard)
+- ✅ 投资组合总览（总市值、总成本、总盈亏、收益率）
+- ✅ 资产类型分布饼图
+- ✅ 持仓占比饼图
+- ✅ 持仓概览卡片
+- ✅ 最近交易列表
+
+### 💼 持仓管理 (Holdings)
+- ✅ 持仓列表展示
+- ✅ 添加新持仓
+- ✅ 编辑现有持仓
+- ✅ 删除持仓
+- ✅ 更新当前价格
+- ✅ 按资产类型统计
+- ✅ 盈亏实时计算
+
+### 📝 交易记录 (Transactions)
+- ✅ 交易历史记录
+- ✅ 买入/卖出交易
+- ✅ 自动更新持仓数量
+- ✅ 交易统计（总数、买入、卖出、总额）
+- ✅ 按持仓筛选交易
+
+### 🔍 股票搜索 (Stock Search)
+- ✅ 实时股票信息查询
+- ✅ Yahoo Finance API 集成
+- ✅ 价格走势图（支持多时间范围）
+- ✅ 股票详细信息展示
+- ✅ 快速添加到投资组合
+- ✅ 常用股票快捷搜索
 
 ## REST API 文档
 
-### 获取所有资产
+### 持仓 API
 
-```
-GET /api/holdings
-```
+| 方法 | 路径 | 功能 |
+|------|------|------|
+| GET | `/api/holdings` | 获取所有持仓 |
+| GET | `/api/holdings/summary` | 获取投资组合总览 |
+| GET | `/api/holdings/{id}` | 获取单个持仓 |
+| GET | `/api/holdings/type/{type}` | 按类型获取持仓 |
+| POST | `/api/holdings` | 创建持仓 |
+| PUT | `/api/holdings/{id}` | 更新持仓 |
+| PATCH | `/api/holdings/{id}/price` | 更新当前价格 |
+| DELETE | `/api/holdings/{id}` | 删除持仓 |
 
-响应示例：
+### 股票 API
 
-```json
-[
-  {
-    "id": 1,
-    "ticker": "AAPL",
-    "volume": 100,
-    "assetType": "STOCK"
-  }
-]
-```
+| 方法 | 路径 | 功能 |
+|------|------|------|
+| GET | `/api/stocks/{ticker}` | 获取股票信息 |
+| GET | `/api/stocks/{ticker}/history` | 获取股票历史价格 |
+| GET | `/api/stocks/search` | 搜索股票 |
+| POST | `/api/stocks/update-holding-price` | 更新持仓价格 |
 
-### 获取单个资产
+### 交易 API
 
-```
-GET /api/holdings/{id}
-```
-
-### 创建资产
-
-```
-POST /api/holdings
-Content-Type: application/json
-
-{
-  "ticker": "AAPL",
-  "volume": 100,
-  "assetType": "STOCK"
-}
-```
-
-### 更新资产
-
-```
-PUT /api/holdings/{id}
-Content-Type: application/json
-
-{
-  "ticker": "AAPL",
-  "volume": 150,
-  "assetType": "STOCK"
-}
-```
-
-### 删除资产
-
-```
-DELETE /api/holdings/{id}
-```
+| 方法 | 路径 | 功能 |
+|------|------|------|
+| GET | `/api/transactions` | 获取所有交易 |
+| GET | `/api/transactions/{id}` | 获取单个交易 |
+| GET | `/api/transactions/holding/{holdingId}` | 获取持仓交易 |
+| GET | `/api/transactions/recent` | 获取最近交易 |
+| POST | `/api/transactions` | 创建交易 |
+| POST | `/api/transactions/buy` | 创建买入交易 |
+| POST | `/api/transactions/sell` | 创建卖出交易 |
+| DELETE | `/api/transactions/{id}` | 删除交易 |
 
 ## 数据模型
 
-### Holding（资产）
+### Holding（持仓）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | Long | 主键，自增 |
-| ticker | String | 股票代码/标识符 |
+| ticker | String | 股票代码 |
 | volume | Integer | 持有数量 |
 | assetType | String | 资产类型（STOCK/BOND/CASH） |
+| purchasePrice | BigDecimal | 买入单价 |
+| purchaseDate | LocalDate | 买入日期 |
+| currentPrice | BigDecimal | 当前价格 |
+| lastUpdated | LocalDateTime | 最后更新时间 |
 
-## 功能特性
+### 计算字段
 
-✅ 资产列表展示
-✅ 添加新资产
-✅ 编辑现有资产
-✅ 删除资产
-✅ 按资产类型统计
-✅ 响应式设计
+| 字段 | 说明 |
+|------|------|
+| totalValue | 总市值 = currentPrice × volume |
+| totalCost | 总成本 = purchasePrice × volume |
+| profitLoss | 盈亏 = totalValue - totalCost |
+| profitLossPercentage | 收益率 = (盈亏 / 总成本) × 100% |
+
+### Transaction（交易）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | Long | 主键，自增 |
+| holding | Holding | 关联持仓 |
+| transactionType | String | 交易类型（BUY/SELL） |
+| volume | Integer | 交易数量 |
+| price | BigDecimal | 交易价格 |
+| transactionDate | LocalDateTime | 交易时间 |
+| totalAmount | BigDecimal | 总金额 |
+
+## UI 设计特点
+
+### 现代化设计
+- 渐变色主题
+- 卡片式布局
+- 响应式设计（支持移动端）
+- 流畅的动画效果
+
+### 数据可视化
+- 资产分布饼图
+- 持仓占比饼图
+- 价格走势折线图
+- 支持多时间范围切换
+
+### 交互体验
+- 实时数据更新
+- 友好的模态框
+- 快捷操作按钮
+- 盈亏颜色标识（绿涨红跌）
 
 ## 后续开发计划
 
-- [ ] 集成 Yahoo Finance API 获取实时价格
-- [ ] 添加价格走势图表
-- [ ] 实现收益率计算
-- [ ] 添加历史交易记录
-- [ ] 支持数据导出
-- [ ] 添加投资建议功能
+- [ ] 集成 WebSocket 实现实时价格推送
+- [ ] 添加用户认证和授权
+- [ ] 支持多投资组合管理
+- [ ] 添加更多图表类型（K线图、成交量图）
+- [ ] 实现投资建议和风险分析
+- [ ] 支持数据导出为 Excel/CSV
+- [ ] 添加投资组合回测功能
+- [ ] 实现移动端 App
+
+## 技术亮点
+
+1. **前后端分离架构**
+2. **RESTful API 设计**
+3. **JPA ORM 数据持久化**
+4. **Yahoo Finance API 集成**
+5. **Chart.js 数据可视化**
+6. **响应式 CSS3 设计**
+7. **模块化 JavaScript 代码**
+8. **完整的 CRUD 操作**
+9. **实时盈亏计算**
+10. **交易历史追踪**
+
+## 注意事项
+
+1. Yahoo Finance API 可能会有访问限制，建议添加缓存机制
+2. 数据库连接信息请根据实际环境修改
+3. 建议在生产环境中添加 HTTPS 配置
+4. 部分依赖库存在已知安全漏洞，建议定期更新
+
+## 许可证
+
+本项目仅用于学习和培训目的。

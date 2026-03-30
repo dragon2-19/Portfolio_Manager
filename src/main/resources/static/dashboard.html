@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资组合 - 仪表板</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 投资组合</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="dashboard.html" class="nav-link">
+                        <span>📈</span> 仪表板
+                    </a>
+                </li>
+                <li>
+                    <a href="holdings.html" class="nav-link">
+                        <span>💼</span> 持仓详情
+                    </a>
+                </li>
+                <li>
+                    <a href="transactions.html" class="nav-link">
+                        <span>📝</span> 交易记录
+                    </a>
+                </li>
+                <li>
+                    <a href="search.html" class="nav-link">
+                        <span>🔍</span> 股票搜索
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>仪表板</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="window.location.href='holdings.html'">
+                        ➕ 添加资产
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadDashboard()">
+                        🔄 刷新
+                    </button>
+                </div>
+            </header>
+
+            <!-- Portfolio Summary Cards -->
+            <section class="summary-section">
+                <div class="summary-card total-value">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-info">
+                        <div class="summary-label">总市值</div>
+                        <div class="summary-value" id="totalValue">$0.00</div>
+                    </div>
+                </div>
+                <div class="summary-card total-cost">
+                    <div class="summary-icon">💵</div>
+                    <div class="summary-info">
+                        <div class="summary-label">总成本</div>
+                        <div class="summary-value" id="totalCost">$0.00</div>
+                    </div>
+                </div>
+                <div class="summary-card profit-loss">
+                    <div class="summary-icon">📊</div>
+                    <div class="summary-info">
+                        <div class="summary-label">总盈亏</div>
+                        <div class="summary-value" id="totalProfitLoss">$0.00</div>
+                    </div>
+                </div>
+                <div class="summary-card profit-loss-pct">
+                    <div class="summary-icon">📈</div>
+                    <div class="summary-info">
+                        <div class="summary-label">收益率</div>
+                        <div class="summary-value" id="totalProfitLossPercentage">0.00%</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3>📊 资产分布（按类型）</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="assetTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3>📊 持仓占比（市值）</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="portfolioDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Holdings Overview -->
+            <section class="holdings-overview-section">
+                <div class="section-header">
+                    <h2>📋 持仓概览</h2>
+                    <a href="holdings.html" class="view-all">查看全部 →</a>
+                </div>
+                <div class="holdings-grid" id="holdingsGrid">
+                </div>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2>📝 最近交易</h2>
+                    <a href="transactions.html" class="view-all">查看全部 →</a>
+                </div>
+                <div class="transactions-list" id="recentTransactions">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
