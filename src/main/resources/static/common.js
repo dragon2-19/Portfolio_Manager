@@ -3,6 +3,12 @@ const HOLDINGS_API = 'http://localhost:8080/api/holdings';
 const STOCKS_API = 'http://localhost:8080/api/stocks';
 const TRANSACTIONS_API = 'http://localhost:8080/api/transactions';
 
+// Log API URLs on load (for debugging)
+console.log('API URLs configured:');
+console.log('HOLDINGS_API:', HOLDINGS_API);
+console.log('STOCKS_API:', STOCKS_API);
+console.log('TRANSACTIONS_API:', TRANSACTIONS_API);
+
 // Format currency
 function formatCurrency(value) {
     if (value === null || value === undefined || isNaN(value)) return '¥0.00';

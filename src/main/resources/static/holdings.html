@@ -43,8 +43,20 @@
             <header class="top-header">
                 <h1>持仓详情</h1>
                 <div class="header-actions">
-                    <button class="btn btn-primary" onclick="openAddModal()">
-                        ➕ 添加资产
+                    <button class="btn btn-primary" onclick="testConnection()">
+                        🔌 测试连接
+                    </button>
+                    <button class="btn btn-primary" onclick="openCashDepositModal()">
+                        💰 充值现金
+                    </button>
+                    <button class="btn btn-secondary" onclick="openCashWithdrawModal()">
+                        💵 提取现金
+                    </button>
+                    <button class="btn btn-info" onclick="openBuyModal()">
+                        📈 买入股票/债券
+                    </button>
+                    <button class="btn btn-warning" onclick="openSellModal()">
+                        📉 卖出股票/债券
                     </button>
                     <button class="btn btn-secondary" onclick="loadHoldings()">
                         🔄 刷新
@@ -91,9 +103,10 @@
                         <tr>
                             <th>ID</th>
                             <th>股票代码</th>
+                            <th>股票名称</th>
                             <th>资产类型</th>
                             <th>持有数量</th>
-                            <th>买入价格</th>
+                            <th>平均成本</th>
                             <th>当前价格</th>
                             <th>总市值</th>
                             <th>盈亏</th>
@@ -109,58 +122,90 @@
         </main>
     </div>
 
-    <!-- Add/Edit Modal -->
-    <div id="holdingModal" class="modal">
+    <!-- Cash Deposit Modal -->
+    <div id="cashDepositModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">添加资产</h2>
-            <form id="holdingForm" onsubmit="saveHolding(event)">
-                <input type="hidden" id="holdingId">
+            <span class="close" onclick="closeCashDepositModal()">&times;</span>
+            <h2>充值现金</h2>
+            <form id="cashDepositForm" onsubmit="depositCash(event)">
                 <div class="form-group">
-                    <label for="ticker">股票代码:</label>
-                    <input type="text" id="ticker" required placeholder="如: AAPL">
+                    <label for="depositAmount">充值金额:</label>
+                    <input type="number" id="depositAmount" required min="0.01" step="0.01" placeholder="金额">
                 </div>
-                <div class="form-group">
-                    <label for="assetType">资产类型:</label>
-                    <select id="assetType" required>
-                        <option value="STOCK">股票</option>
-                        <option value="BOND">债券</option>
-                        <option value="CASH">现金</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="volume">持有数量:</label>
-                    <input type="number" id="volume" required min="1" placeholder="数量">
-                </div>
-                <div class="form-group">
-                    <label for="purchasePrice">买入价格:</label>
-                    <input type="number" id="purchasePrice" step="0.0001" required min="0" placeholder="买入价格">
-                </div>
-                <div class="form-group">
-                    <label for="currentPrice">当前价格:</label>
-                    <input type="number" id="currentPrice" step="0.0001" min="0" placeholder="当前价格">
-                </div>
-                <div class="form-group">
-                    <label for="purchaseDate">买入日期:</label>
-                    <input type="date" id="purchaseDate" required>
-                </div>
-                <button type="submit" class="btn btn-primary">保存</button>
+                <button type="submit" class="btn btn-primary">确认充值</button>
             </form>
         </div>
     </div>
 
-    <!-- Update Price Modal -->
-    <div id="priceModal" class="modal">
+    <!-- Cash Withdraw Modal -->
+    <div id="cashWithdrawModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closePriceModal()">&times;</span>
-            <h2>更新当前价格</h2>
-            <form id="priceForm" onsubmit="updatePrice(event)">
-                <input type="hidden" id="priceHoldingId">
+            <span class="close" onclick="closeCashWithdrawModal()">&times;</span>
+            <h2>提取现金</h2>
+            <form id="cashWithdrawForm" onsubmit="withdrawCash(event)">
                 <div class="form-group">
-                    <label for="newPrice">新的当前价格:</label>
-                    <input type="number" id="newPrice" step="0.0001" required min="0" placeholder="新价格">
+                    <label for="withdrawAmount">提取金额:</label>
+                    <input type="number" id="withdrawAmount" required min="0.01" step="0.01" placeholder="金额">
                 </div>
-                <button type="submit" class="btn btn-primary">更新</button>
+                <div class="form-group">
+                    <label>当前现金余额:</label>
+                    <div id="currentCashBalance">¥0.00</div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认提取</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Buy Stock Modal -->
+    <div id="buyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBuyModal()">&times;</span>
+            <h2>买入股票/债券</h2>
+            <form id="buyForm" onsubmit="buyStock(event)">
+                <div class="form-group">
+                    <label for="buyTicker">股票代码:</label>
+                    <input type="text" id="buyTicker" required placeholder="如: 600519">
+                </div>
+                <div class="form-group">
+                    <label for="buyVolume">数量:</label>
+                    <input type="number" id="buyVolume" required min="1" placeholder="数量">
+                </div>
+                <div class="form-group">
+                    <label for="buyOpenPrice">今日开盘价:</label>
+                    <input type="number" id="buyOpenPrice" step="0.0001" readonly placeholder="自动获取">
+                </div>
+                <div class="form-group">
+                    <label>预计总金额:</label>
+                    <div id="buyTotalAmount">¥0.00</div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认买入</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sell Stock Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSellModal()">&times;</span>
+            <h2>卖出股票/债券</h2>
+            <form id="sellForm" onsubmit="sellStock(event)">
+                <div class="form-group">
+                    <label for="sellTicker">股票代码:</label>
+                    <input type="text" id="sellTicker" required placeholder="如: 600519">
+                </div>
+                <div class="form-group">
+                    <label for="sellVolume">数量:</label>
+                    <input type="number" id="sellVolume" required min="1" placeholder="数量">
+                </div>
+                <div class="form-group">
+                    <label for="sellOpenPrice">今日开盘价:</label>
+                    <input type="number" id="sellOpenPrice" step="0.0001" readonly placeholder="自动获取">
+                </div>
+                <div class="form-group">
+                    <label>预计收益:</label>
+                    <div id="sellProfit">¥0.00</div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认卖出</button>
             </form>
         </div>
     </div>

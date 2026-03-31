@@ -3,11 +3,9 @@ package com.drake.controller;
 import com.drake.model.Transaction;
 import com.drake.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,38 +36,14 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    /**
+     * 创建交易记录（通用接口）
+     * 注意：交易记录通常通过买入/卖出操作自动创建，此接口仅用于特殊情况
+     */
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
         Transaction createdTransaction = transactionService.createTransaction(transaction);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTransaction);
-    }
-
-    @PostMapping("/buy")
-    public ResponseEntity<Transaction> createBuyTransaction(
-            @RequestParam Long holdingId,
-            @RequestParam Integer volume,
-            @RequestParam BigDecimal price) {
-        Transaction transaction = transactionService.createBuyTransaction(holdingId, volume, price);
-        if (transaction != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
-        }
-        return ResponseEntity.badRequest().build();
-    }
-
-    @PostMapping("/sell")
-    public ResponseEntity<Transaction> createSellTransaction(
-            @RequestParam Long holdingId,
-            @RequestParam Integer volume,
-            @RequestParam BigDecimal price) {
-        try {
-            Transaction transaction = transactionService.createSellTransaction(holdingId, volume, price);
-            if (transaction != null) {
-                return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
-            }
-            return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(createdTransaction);
     }
 
     @DeleteMapping("/{id}")

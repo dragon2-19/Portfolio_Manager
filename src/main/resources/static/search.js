@@ -220,38 +220,88 @@ function showAddToPortfolio() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('addToPortfolioDate').value = today;
 
+    // 根据当前设置显示/隐藏输入框
+    togglePriceInput();
+
     document.getElementById('addToPortfolioModal').style.display = 'block';
+}
+
+// Toggle price and date input based on asset type
+function togglePriceInput() {
+    const assetType = document.getElementById('addToPortfolioAssetType').value;
+    const priceInputGroup = document.getElementById('priceInputGroup');
+    const dateInputGroup = document.getElementById('dateInputGroup');
+    const buyInfo = document.getElementById('buyInfo');
+
+    if (assetType === 'CASH') {
+        // 现金需要显示价格和日期输入
+        priceInputGroup.style.display = 'block';
+        dateInputGroup.style.display = 'block';
+        buyInfo.style.display = 'none';
+    } else {
+        // 股票和债券不需要显示价格和日期（使用今日开盘价）
+        priceInputGroup.style.display = 'none';
+        dateInputGroup.style.display = 'none';
+        buyInfo.style.display = 'block';
+    }
 }
 
 // Add to portfolio
 async function addToPortfolio(event) {
     event.preventDefault();
 
-    const holding = {
-        ticker: document.getElementById('addToPortfolioTicker').value,
-        assetType: document.getElementById('addToPortfolioAssetType').value,
-        volume: parseInt(document.getElementById('addToPortfolioVolume').value),
-        purchasePrice: parseFloat(document.getElementById('addToPortfolioPrice').value),
-        currentPrice: parseFloat(document.getElementById('addToPortfolioPrice').value),
-        purchaseDate: document.getElementById('addToPortfolioDate').value
-    };
+    const ticker = document.getElementById('addToPortfolioTicker').value;
+    const assetType = document.getElementById('addToPortfolioAssetType').value;
+    const volume = parseInt(document.getElementById('addToPortfolioVolume').value);
 
-    try {
-        const response = await fetch(HOLDINGS_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(holding)
-        });
+    // 对于股票和债券，使用买入接口；对于现金，使用创建接口
+    if (assetType === 'CASH') {
+        const holding = {
+            ticker: 'CASH',
+            stockName: '现金',
+            assetType: 'CASH',
+            volume: volume,
+            purchasePrice: 1,
+            currentPrice: 1,
+            purchaseDate: document.getElementById('addToPortfolioDate').value
+        };
 
-        if (response.ok) {
-            closeAddToPortfolioModal();
-            alert('成功添加到投资组合！');
-        } else {
-            alert('添加失败，请重试');
+        try {
+            const response = await fetch(HOLDINGS_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(holding)
+            });
+
+            if (response.ok) {
+                closeAddToPortfolioModal();
+                alert('成功添加现金到投资组合！');
+            } else {
+                const errorText = await response.text();
+                alert('添加失败：' + errorText);
+            }
+        } catch (error) {
+            console.error('Error adding to portfolio:', error);
+            alert('添加失败，请检查网络连接');
         }
-    } catch (error) {
-        console.error('Error adding to portfolio:', error);
-        alert('添加失败，请检查网络连接');
+    } else {
+        // 对于股票和债券，使用买入接口
+        try {
+            const response = await fetch(`${HOLDINGS_API}/buy?ticker=${ticker}&volume=${volume}`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                closeAddToPortfolioModal();
+                alert('成功添加到投资组合！');
+            } else {
+                const errorText = await response.text();
+                alert('添加失败：' + errorText);
+            }
+        } catch (error) {
+            console.error('Error buying stock:', error);
+            alert('添加失败，请检查网络连接');
+        }
     }
 }
 

@@ -22,6 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t WHERE t.transactionDate >= :startDate")
     List<Transaction> findTransactionsAfterDate(@Param("startDate") LocalDateTime startDate);
 
-    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.holding.id = :holdingId")
+    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.holding IS NOT NULL AND t.holding.id = :holdingId")
     Long countByHoldingId(@Param("holdingId") Long holdingId);
 }

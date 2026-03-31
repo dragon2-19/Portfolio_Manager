@@ -45,10 +45,92 @@ public class HoldingController {
         return ResponseEntity.ok(holdings);
     }
 
+    /**
+     * 获取现金余额
+     */
+    @GetMapping("/cash/balance")
+    public ResponseEntity<BigDecimal> getCashBalance() {
+        BigDecimal balance = holdingService.getCashBalance();
+        return ResponseEntity.ok(balance);
+    }
+
+    /**
+     * 充值现金
+     */
+    @PostMapping("/cash/deposit")
+    public ResponseEntity<?> depositCash(@RequestParam BigDecimal amount) {
+        try {
+            Holding cash = holdingService.depositCash(amount);
+            return ResponseEntity.ok(cash);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 提取现金
+     */
+    @PostMapping("/cash/withdraw")
+    public ResponseEntity<?> withdrawCash(@RequestParam BigDecimal amount) {
+        try {
+            Holding cash = holdingService.withdrawCash(amount);
+            return ResponseEntity.ok(cash);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 买入股票或债券
+     */
+    @PostMapping("/buy")
+    public ResponseEntity<?> buyStock(
+            @RequestParam String ticker,
+            @RequestParam Integer volume) {
+        try {
+            Holding holding = holdingService.buyStock(ticker, volume);
+            return ResponseEntity.status(HttpStatus.CREATED).body(holding);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 卖出股票或债券
+     */
+    @PostMapping("/sell")
+    public ResponseEntity<?> sellStock(
+            @RequestParam String ticker,
+            @RequestParam Integer volume) {
+        try {
+            Holding holding = holdingService.sellStock(ticker, volume);
+            return ResponseEntity.ok(holding);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 更新所有股票/债券持仓价格为今日开盘价
+     */
+    @PostMapping("/update-all-prices")
+    public ResponseEntity<String> updateAllStockPricesToTodayOpen() {
+        try {
+            holdingService.updateAllStockPricesToTodayOpen();
+            return ResponseEntity.ok("All prices updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to update prices: " + e.getMessage());
+        }
+    }
+
     @PostMapping
-    public ResponseEntity<Holding> createHolding(@RequestBody Holding holding) {
-        Holding createdHolding = holdingService.createHolding(holding);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdHolding);
+    public ResponseEntity<?> createHolding(@RequestBody Holding holding) {
+        try {
+            Holding createdHolding = holdingService.createHolding(holding);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdHolding);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")

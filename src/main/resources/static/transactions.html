@@ -42,9 +42,6 @@
             <header class="top-header">
                 <h1>交易记录</h1>
                 <div class="header-actions">
-                    <button class="btn btn-primary" onclick="openTransactionModal()">
-                        ➕ 新建交易
-                    </button>
                     <button class="btn btn-secondary" onclick="loadTransactions()">
                         🔄 刷新
                     </button>
@@ -74,11 +71,18 @@
                         <div class="stat-value" id="sellCount">0</div>
                     </div>
                 </div>
-                <div class="stat-card total-amount">
+                <div class="stat-card deposit">
                     <div class="stat-icon">💰</div>
                     <div class="stat-info">
-                        <div class="stat-label">交易总额</div>
-                        <div class="stat-value" id="totalAmount">$0.00</div>
+                        <div class="stat-label">充值次数</div>
+                        <div class="stat-value" id="depositCount">0</div>
+                    </div>
+                </div>
+                <div class="stat-card withdraw">
+                    <div class="stat-icon">💵</div>
+                    <div class="stat-info">
+                        <div class="stat-label">提取次数</div>
+                        <div class="stat-value" id="withdrawCount">0</div>
                     </div>
                 </div>
             </section>
@@ -90,10 +94,13 @@
                         <tr>
                             <th>ID</th>
                             <th>股票代码</th>
+                            <th>股票名称</th>
                             <th>交易类型</th>
                             <th>数量</th>
                             <th>价格</th>
                             <th>总金额</th>
+                            <th>手续费</th>
+                            <th>收益</th>
                             <th>交易时间</th>
                             <th>操作</th>
                         </tr>
@@ -103,39 +110,6 @@
                 </table>
             </section>
         </main>
-    </div>
-
-    <!-- Transaction Modal -->
-    <div id="transactionModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeTransactionModal()">&times;</span>
-            <h2 id="transactionModalTitle">新建交易</h2>
-            <form id="transactionForm" onsubmit="saveTransaction(event)">
-                <input type="hidden" id="transactionId">
-                <div class="form-group">
-                    <label for="holdingSelect">选择持仓:</label>
-                    <select id="holdingSelect" required>
-                        <option value="">请选择持仓</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="transactionType">交易类型:</label>
-                    <select id="transactionType" required>
-                        <option value="BUY">买入</option>
-                        <option value="SELL">卖出</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="transactionVolume">数量:</label>
-                    <input type="number" id="transactionVolume" required min="1" placeholder="数量">
-                </div>
-                <div class="form-group">
-                    <label for="transactionPrice">价格:</label>
-                    <input type="number" id="transactionPrice" step="0.0001" required min="0" placeholder="价格">
-                </div>
-                <button type="submit" class="btn btn-primary">保存</button>
-            </form>
-        </div>
     </div>
 
     <script src="common.js"></script>

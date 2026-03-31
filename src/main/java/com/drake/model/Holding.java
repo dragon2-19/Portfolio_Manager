@@ -24,6 +24,9 @@ public class Holding {
     @Column(nullable = false, length = 20)
     private String ticker;
 
+    @Column(length = 50)
+    private String stockName;
+
     @Column(nullable = false)
     private Integer volume;
 

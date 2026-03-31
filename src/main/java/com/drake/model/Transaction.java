@@ -1,5 +1,7 @@
 package com.drake.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Transaction {
 
     @Id
@@ -20,11 +23,18 @@ public class Transaction {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "holding_id", nullable = false)
+    @JoinColumn(name = "holding_id", nullable = true)
+    @JsonIgnore
     private Holding holding;
 
+    @Column(name = "ticker", length = 20)
+    private String ticker;
+
+    @Column(length = 50)
+    private String stockName;
+
     @Column(name = "transaction_type", nullable = false, length = 10)
-    private String transactionType; // BUY or SELL
+    private String transactionType; // BUY or SELL or DEPOSIT or WITHDRAW
 
     @Column(nullable = false)
     private Integer volume;
@@ -38,17 +48,9 @@ public class Transaction {
     @Column(name = "total_amount", precision = 19, scale = 4)
     private BigDecimal totalAmount;
 
-    @PrePersist
-    @PreUpdate
-    protected void preSave() {
-        // 计算总金额
-        if (volume != null && price != null) {
-            this.totalAmount = price.multiply(new BigDecimal(volume));
-        }
+    @Column(precision = 19, scale = 4)
+    private BigDecimal fee;
 
-        // 设置默认日期
-        if (transactionDate == null) {
-            this.transactionDate = LocalDateTime.now();
-        }
-    }
+    @Column(name = "profit_loss", precision = 19, scale = 4)
+    private BigDecimal profitLoss;
 }

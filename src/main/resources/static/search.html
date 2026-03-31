@@ -147,7 +147,7 @@
                 <input type="hidden" id="addToPortfolioTicker">
                 <div class="form-group">
                     <label for="addToPortfolioAssetType">资产类型:</label>
-                    <select id="addToPortfolioAssetType" required>
+                    <select id="addToPortfolioAssetType" required onchange="togglePriceInput()">
                         <option value="STOCK">股票</option>
                         <option value="BOND">债券</option>
                         <option value="CASH">现金</option>
@@ -157,13 +157,16 @@
                     <label for="addToPortfolioVolume">持有数量:</label>
                     <input type="number" id="addToPortfolioVolume" required min="1" placeholder="数量">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="priceInputGroup">
                     <label for="addToPortfolioPrice">买入价格:</label>
                     <input type="number" id="addToPortfolioPrice" step="0.0001" required min="0" placeholder="价格">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="dateInputGroup">
                     <label for="addToPortfolioDate">买入日期:</label>
                     <input type="date" id="addToPortfolioDate" required>
+                </div>
+                <div class="form-group info-text" id="buyInfo" style="display: none; color: #666; font-size: 12px;">
+                    注意：股票和债券将使用今日开盘价进行交易
                 </div>
                 <button type="submit" class="btn btn-primary">添加</button>
             </form>

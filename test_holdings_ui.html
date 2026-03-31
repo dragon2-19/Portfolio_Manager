@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试前端UI功能</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-left: 4px solid #007bff;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>前端UI功能测试（不依赖后端）</h1>
+
+    <div class="buttons">
+        <button class="btn btn-primary" onclick="openCashDepositModal()">💰 充值现金</button>
+        <button class="btn btn-secondary" onclick="openCashWithdrawModal()">💵 提取现金</button>
+        <button class="btn btn-info" onclick="openBuyModal()">📈 买入股票/债券</button>
+        <button class="btn btn-warning" onclick="openSellModal()">📉 卖出股票/债券</button>
+    </div>
+
+    <div class="status" id="status">
+        <strong>状态：</strong><span id="statusText">等待操作...</span>
+    </div>
+
+    <!-- Cash Deposit Modal -->
+    <div id="cashDepositModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCashDepositModal()">&times;</span>
+            <h2>充值现金</h2>
+            <form id="cashDepositForm" onsubmit="handleDeposit(event)">
+                <div class="form-group">
+                    <label for="depositAmount">充值金额:</label>
+                    <input type="number" id="depositAmount" required min="0.01" step="0.01" placeholder="金额">
+                </div>
+                <button type="submit" class="btn btn-primary">确认充值</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cash Withdraw Modal -->
+    <div id="cashWithdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCashWithdrawModal()">&times;</span>
+            <h2>提取现金</h2>
+            <form id="cashWithdrawForm" onsubmit="handleWithdraw(event)">
+                <div class="form-group">
+                    <label for="withdrawAmount">提取金额:</label>
+                    <input type="number" id="withdrawAmount" required min="0.01" step="0.01" placeholder="金额">
+                </div>
+                <div class="form-group">
+                    <label>当前现金余额:</label>
+                    <div id="currentCashBalance">¥0.00</div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认提取</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Buy Stock Modal -->
+    <div id="buyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBuyModal()">&times;</span>
+            <h2>买入股票/债券</h2>
+            <form id="buyForm" onsubmit="handleBuy(event)">
+                <div class="form-group">
+                    <label for="buyTicker">股票代码:</label>
+                    <input type="text" id="buyTicker" required placeholder="如: 600519">
+                </div>
+                <div class="form-group">
+                    <label for="buyVolume">数量:</label>
+                    <input type="number" id="buyVolume" required min="1" placeholder="数量">
+                </div>
+                <div class="form-group">
+                    <label for="buyOpenPrice">今日开盘价:</label>
+                    <input type="number" id="buyOpenPrice" step="0.0001" readonly placeholder="自动获取">
+                </div>
+                <div class="form-group">
+                    <label>预计总金额:</label>
+                    <div id="buyTotalAmount">¥0.00</div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认买入</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sell Stock Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSellModal()">&times;</span>
+            <h2>卖出股票/债券</h2>
+            <form id="sellForm" onsubmit="handleSell(event)">
+                <div class="form-group">
+                    <label for="sellTicker">股票代码:</label>
+                    <input type="text" id="sellTicker" required placeholder="如: 600519">
+                </div>
+                <div class="form-group">
+                    <label for="sellVolume">数量:</label>
+                    <input type="number" id="sellVolume" required min="1" placeholder="数量">
+                </div>
+                <div class="form-group">
+                    <label for="sellOpenPrice">今日开盘价:</label>
+                    <input type="number" id="sellOpenPrice" step="0.0001" readonly placeholder="自动获取">
+                </div>
+                <div class="form-group">
+                    <label>预计收益:</label>
+                    <div id="sellProfit">¥0.00</div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认卖出</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        console.log('测试页面加载完成');
+
+        // 更新状态显示
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+            console.log('Status:', text);
+        }
+
+        // Cash deposit modal
+        function openCashDepositModal() {
+            console.log('openCashDepositModal called');
+            try {
+                document.getElementById('cashDepositForm').reset();
+                document.getElementById('cashDepositModal').style.display = 'block';
+                updateStatus('✅ 充值modal打开成功！');
+            } catch (error) {
+                console.error('Error opening cashDepositModal:', error);
+                updateStatus('❌ 打开充值modal失败：' + error.message);
+            }
+        }
+
+        // Cash withdraw modal
+        function openCashWithdrawModal() {
+            console.log('openCashWithdrawModal called');
+            try {
+                document.getElementById('currentCashBalance').textContent = '¥10000.00';
+                document.getElementById('withdrawAmount').value = '';
+                document.getElementById('cashWithdrawModal').style.display = 'block';
+                updateStatus('✅ 提取modal打开成功！');
+            } catch (error) {
+                console.error('Error opening cashWithdrawModal:', error);
+                updateStatus('❌ 打开提取modal失败：' + error.message);
+            }
+        }
+
+        // Buy stock modal
+        function openBuyModal() {
+            console.log('openBuyModal called');
+            try {
+                document.getElementById('buyForm').reset();
+                document.getElementById('buyTotalAmount').textContent = '¥0.00';
+                document.getElementById('buyModal').style.display = 'block';
+                updateStatus('✅ 买入modal打开成功！');
+            } catch (error) {
+                console.error('Error opening buyModal:', error);
+                updateStatus('❌ 打开买入modal失败：' + error.message);
+            }
+        }
+
+        // Sell stock modal
+        function openSellModal() {
+            console.log('openSellModal called');
+            try {
+                document.getElementById('sellForm').reset();
+                document.getElementById('sellProfit').textContent = '¥0.00';
+                document.getElementById('sellModal').style.display = 'block';
+                updateStatus('✅ 卖出modal打开成功！');
+            } catch (error) {
+                console.error('Error opening sellModal:', error);
+                updateStatus('❌ 打开卖出modal失败：' + error.message);
+            }
+        }
+
+        // Handle deposit (mock)
+        function handleDeposit(event) {
+            event.preventDefault();
+            const amount = document.getElementById('depositAmount').value;
+            console.log('Deposit amount:', amount);
+            updateStatus('✅ 充值成功！金额：¥' + amount);
+            closeCashDepositModal();
+        }
+
+        // Handle withdraw (mock)
+        function handleWithdraw(event) {
+            event.preventDefault();
+            const amount = document.getElementById('withdrawAmount').value;
+            console.log('Withdraw amount:', amount);
+            updateStatus('✅ 提取成功！金额：¥' + amount);
+            closeCashWithdrawModal();
+        }
+
+        // Handle buy (mock)
+        function handleBuy(event) {
+            event.preventDefault();
+            const ticker = document.getElementById('buyTicker').value;
+            const volume = document.getElementById('buyVolume').value;
+            console.log('Buy ticker:', ticker, 'volume:', volume);
+            updateStatus('✅ 买入成功！股票：' + ticker + '，数量：' + volume);
+            closeBuyModal();
+        }
+
+        // Handle sell (mock)
+        function handleSell(event) {
+            event.preventDefault();
+            const ticker = document.getElementById('sellTicker').value;
+            const volume = document.getElementById('sellVolume').value;
+            console.log('Sell ticker:', ticker, 'volume:', volume);
+            updateStatus('✅ 卖出成功！股票：' + ticker + '，数量：' + volume);
+            closeSellModal();
+        }
+
+        // Close modals
+        function closeCashDepositModal() {
+            document.getElementById('cashDepositModal').style.display = 'none';
+        }
+
+        function closeCashWithdrawModal() {
+            document.getElementById('cashWithdrawModal').style.display = 'none';
+        }
+
+        function closeBuyModal() {
+            document.getElementById('buyModal').style.display = 'none';
+        }
+
+        function closeSellModal() {
+            document.getElementById('sellModal').style.display = 'none';
+        }
+
+        // 点击 modal 外部关闭
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        console.log('所有函数定义完成');
+    </script>
+</body>
+</html>

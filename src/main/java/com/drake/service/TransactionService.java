@@ -2,7 +2,6 @@ package com.drake.service;
 
 import com.drake.model.Holding;
 import com.drake.model.Transaction;
-import com.drake.repository.HoldingRepository;
 import com.drake.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +17,6 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    @Autowired
-    private HoldingRepository holdingRepository;
-
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
@@ -34,57 +30,90 @@ public class TransactionService {
     }
 
     public Transaction createTransaction(Transaction transaction) {
+        if (transaction.getTransactionDate() == null) {
+            transaction.setTransactionDate(LocalDateTime.now());
+        }
         return transactionRepository.save(transaction);
     }
 
-    public Transaction createBuyTransaction(Long holdingId, Integer volume, BigDecimal price) {
-        Optional<Holding> holdingOpt = holdingRepository.findById(holdingId);
-        if (holdingOpt.isPresent()) {
-            Holding holding = holdingOpt.get();
+    /**
+     * 创建买入交易记录
+     */
+    public Transaction createBuyTransaction(Holding holding, String ticker, String stockName,
+                                           Integer volume, BigDecimal price,
+                                           BigDecimal fee, BigDecimal totalAmount) {
+        Transaction transaction = new Transaction();
+        transaction.setHolding(holding);
+        transaction.setTicker(ticker);
+        transaction.setStockName(stockName);
+        transaction.setTransactionType("BUY");
+        transaction.setVolume(volume);
+        transaction.setPrice(price);
+        transaction.setTotalAmount(totalAmount);
+        transaction.setFee(fee);
+        transaction.setProfitLoss(BigDecimal.ZERO);
+        transaction.setTransactionDate(LocalDateTime.now());
 
-            Transaction transaction = new Transaction();
-            transaction.setHolding(holding);
-            transaction.setTransactionType("BUY");
-            transaction.setVolume(volume);
-            transaction.setPrice(price);
-            transaction.setTransactionDate(LocalDateTime.now());
-
-            Transaction savedTransaction = transactionRepository.save(transaction);
-
-            // Update holding volume
-            holding.setVolume(holding.getVolume() + volume);
-            holdingRepository.save(holding);
-
-            return savedTransaction;
-        }
-        return null;
+        return transactionRepository.save(transaction);
     }
 
-    public Transaction createSellTransaction(Long holdingId, Integer volume, BigDecimal price) {
-        Optional<Holding> holdingOpt = holdingRepository.findById(holdingId);
-        if (holdingOpt.isPresent()) {
-            Holding holding = holdingOpt.get();
+    /**
+     * 创建卖出交易记录
+     */
+    public Transaction createSellTransaction(Holding holding, String ticker, String stockName,
+                                            Integer volume, BigDecimal price,
+                                            BigDecimal fee, BigDecimal totalAmount, BigDecimal profitLoss) {
+        Transaction transaction = new Transaction();
+        transaction.setHolding(holding);
+        transaction.setTicker(ticker);
+        transaction.setStockName(stockName);
+        transaction.setTransactionType("SELL");
+        transaction.setVolume(volume);
+        transaction.setPrice(price);
+        transaction.setTotalAmount(totalAmount);
+        transaction.setFee(fee);
+        transaction.setProfitLoss(profitLoss);
+        transaction.setTransactionDate(LocalDateTime.now());
 
-            if (holding.getVolume() < volume) {
-                throw new RuntimeException("Insufficient volume to sell");
-            }
+        return transactionRepository.save(transaction);
+    }
 
-            Transaction transaction = new Transaction();
-            transaction.setHolding(holding);
-            transaction.setTransactionType("SELL");
-            transaction.setVolume(volume);
-            transaction.setPrice(price);
-            transaction.setTransactionDate(LocalDateTime.now());
+    /**
+     * 创建充值交易记录
+     */
+    public Transaction createDepositTransaction(Holding holding, BigDecimal amount, String remark) {
+        Transaction transaction = new Transaction();
+        transaction.setHolding(holding);
+        transaction.setTransactionType("DEPOSIT");
+        transaction.setVolume(amount.intValue());
+        transaction.setPrice(BigDecimal.ONE);
+        transaction.setTotalAmount(amount);
+        transaction.setFee(BigDecimal.ZERO);
+        transaction.setProfitLoss(BigDecimal.ZERO);
+        transaction.setTransactionDate(LocalDateTime.now());
+        transaction.setTicker("CASH");
+        transaction.setStockName("现金");
 
-            Transaction savedTransaction = transactionRepository.save(transaction);
+        return transactionRepository.save(transaction);
+    }
 
-            // Update holding volume
-            holding.setVolume(holding.getVolume() - volume);
-            holdingRepository.save(holding);
+    /**
+     * 创建提取交易记录
+     */
+    public Transaction createWithdrawTransaction(Holding holding, BigDecimal amount, String remark) {
+        Transaction transaction = new Transaction();
+        transaction.setHolding(holding);
+        transaction.setTransactionType("WITHDRAW");
+        transaction.setVolume(amount.intValue());
+        transaction.setPrice(BigDecimal.ONE);
+        transaction.setTotalAmount(amount);
+        transaction.setFee(BigDecimal.ZERO);
+        transaction.setProfitLoss(BigDecimal.ZERO);
+        transaction.setTransactionDate(LocalDateTime.now());
+        transaction.setTicker("CASH");
+        transaction.setStockName("现金");
 
-            return savedTransaction;
-        }
-        return null;
+        return transactionRepository.save(transaction);
     }
 
     public boolean deleteTransaction(Long id) {

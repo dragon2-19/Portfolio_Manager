@@ -133,6 +133,26 @@ body {
     background: #f0f0f0;
 }
 
+.btn-info {
+    background: linear-gradient(135deg, #42a5f5 0%, #2196f3 100%);
+    color: white;
+}
+
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
 .action-btn {
     padding: 6px 12px;
     border: none;
@@ -150,6 +170,15 @@ body {
 
 .btn-edit:hover {
     background: #f57c00;
+}
+
+.btn-sell {
+    background: #f44336;
+    color: white;
+}
+
+.btn-sell:hover {
+    background: #d32f2f;
 }
 
 .btn-delete {
@@ -402,6 +431,14 @@ body {
 
 .transaction-sell {
     background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%);
+}
+
+.transaction-deposit {
+    background: linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%);
+}
+
+.transaction-withdraw {
+    background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
 }
 
 .transaction-info {

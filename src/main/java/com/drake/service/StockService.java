@@ -59,6 +59,25 @@ public class StockService {
         }
     }
 
+    /**
+     * 获取股票今日开盘价
+     * @param ticker 股票代码
+     * @return 今日开盘价
+     */
+    public BigDecimal getTodayOpenPrice(String ticker) {
+        try {
+            String sinaCode = convertToSinaCode(ticker);
+            StockInfo stockInfo = trySinaApi(ticker, sinaCode);
+            if (stockInfo != null) {
+                System.out.println("DEBUG: Got stock info for " + ticker + ", open price: " + stockInfo.getOpen());
+                return stockInfo.getOpen();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching open price for " + ticker + ": " + e.getMessage());
+        }
+        return BigDecimal.ZERO;
+    }
+
     public StockInfo getStockInfoWithHistory(String ticker, String range) {
         try {
             String sinaCode = convertToSinaCode(ticker);
