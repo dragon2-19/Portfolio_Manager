@@ -31,6 +31,14 @@ public class StockInfo {
     public static class PriceHistoryPoint {
         private String date;
         private BigDecimal price;
+        private BigDecimal open;
+
+        // Two-argument constructor for backward compatibility
+        public PriceHistoryPoint(String date, BigDecimal price) {
+            this.date = date;
+            this.price = price;
+            this.open = null;
+        }
     }
 
     private List<PriceHistoryPoint> priceHistory;

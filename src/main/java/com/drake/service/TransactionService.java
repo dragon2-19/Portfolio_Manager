@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +42,7 @@ public class TransactionService {
      */
     public Transaction createBuyTransaction(Holding holding, String ticker, String stockName,
                                            Integer volume, BigDecimal price,
-                                           BigDecimal fee, BigDecimal totalAmount) {
+                                           BigDecimal fee, BigDecimal totalAmount, LocalDate transactionDate) {
         Transaction transaction = new Transaction();
         transaction.setHolding(holding);
         transaction.setTicker(ticker);
@@ -52,7 +53,7 @@ public class TransactionService {
         transaction.setTotalAmount(totalAmount);
         transaction.setFee(fee);
         transaction.setProfitLoss(BigDecimal.ZERO);
-        transaction.setTransactionDate(LocalDateTime.now());
+        transaction.setTransactionDate(transactionDate != null ? transactionDate.atStartOfDay() : LocalDateTime.now());
 
         return transactionRepository.save(transaction);
     }
@@ -62,7 +63,7 @@ public class TransactionService {
      */
     public Transaction createSellTransaction(Holding holding, String ticker, String stockName,
                                             Integer volume, BigDecimal price,
-                                            BigDecimal fee, BigDecimal totalAmount, BigDecimal profitLoss) {
+                                            BigDecimal fee, BigDecimal totalAmount, BigDecimal profitLoss, LocalDate transactionDate) {
         Transaction transaction = new Transaction();
         transaction.setHolding(holding);
         transaction.setTicker(ticker);
@@ -73,7 +74,7 @@ public class TransactionService {
         transaction.setTotalAmount(totalAmount);
         transaction.setFee(fee);
         transaction.setProfitLoss(profitLoss);
-        transaction.setTransactionDate(LocalDateTime.now());
+        transaction.setTransactionDate(transactionDate != null ? transactionDate.atStartOfDay() : LocalDateTime.now());
 
         return transactionRepository.save(transaction);
     }

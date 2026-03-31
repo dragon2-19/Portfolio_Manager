@@ -78,6 +78,36 @@ public class StockService {
         return BigDecimal.ZERO;
     }
 
+    /**
+     * 获取历史日期的开盘价
+     * @param ticker 股票代码
+     * @param date 日期，格式为 yyyy-MM-dd
+     * @return 开盘价
+     */
+    public BigDecimal getHistoricalOpenPrice(String ticker, String date) {
+        try {
+            String sinaCode = convertToSinaCode(ticker);
+
+            // 获取K线数据，获取足够的历史数据
+            List<StockInfo.PriceHistoryPoint> history = getKlineDataWithOpen(sinaCode, 365);
+
+            // 查找指定日期的开盘价
+            for (StockInfo.PriceHistoryPoint point : history) {
+                if (point.getDate().equals(date) && point.getOpen() != null && point.getOpen().compareTo(BigDecimal.ZERO) > 0) {
+                    System.out.println("DEBUG: Got historical open price for " + ticker + " on " + date + ": " + point.getOpen());
+                    return point.getOpen();
+                }
+            }
+
+            System.err.println("No historical open price found for " + ticker + " on " + date);
+            return BigDecimal.ZERO;
+        } catch (Exception e) {
+            System.err.println("Error fetching historical open price for " + ticker + ": " + e.getMessage());
+            e.printStackTrace();
+            return BigDecimal.ZERO;
+        }
+    }
+
     public StockInfo getStockInfoWithHistory(String ticker, String range) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -357,6 +387,43 @@ public class StockService {
     }
 
     /**
+     * 获取K线数据（包含开盘价）
+     * @param sinaCode 新浪股票代码（如：sh600519）
+     * @param days 需要获取的天数
+     * @return K线数据列表
+     */
+    private List<StockInfo.PriceHistoryPoint> getKlineDataWithOpen(String sinaCode, int days) {
+        try {
+            // 最多获取1023个数据节点（新浪限制）
+            int dataLen = Math.min(days, 1023);
+
+            // scale参数：
+            // 5 = 5分钟K线
+            // 30 = 30分钟K线
+            // 60 = 60分钟K线
+            // 240 = 日K线
+            String url = SINA_KLINE_URL + "?symbol=" + sinaCode +
+                    "&scale=240" +  // 使用日K线
+                    "&ma=no" +         // 不包含均线
+                    "&datalen=" + dataLen;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            headers.set("Accept", "application/json, text/plain, */*");
+            headers.set("Referer", "https://finance.sina.com.cn/");
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            String response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class).getBody();
+
+            return parseSinaKlineDataWithOpen(response);
+        } catch (Exception e) {
+            System.err.println("Error fetching K-line data with open: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    /**
      * 获取K线数据
      * @param sinaCode 新浪股票代码（如：sh600519）
      * @param days 需要获取的天数
@@ -391,6 +458,54 @@ public class StockService {
             e.printStackTrace();
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * 解析新浪K线数据（包含开盘价）
+     * 新浪返回格式：[{"day":"2024-03-20","open":"1468.00","high":"1475.00","low":"1460.00","close":"1463.00","volume":"1771400"},...]
+     * @param response 新浪API返回的JSON字符串
+     * @return K线数据列表
+     */
+    private List<StockInfo.PriceHistoryPoint> parseSinaKlineDataWithOpen(String response) {
+        List<StockInfo.PriceHistoryPoint> history = new ArrayList<>();
+
+        try {
+            if (response == null || response.isEmpty()) {
+                return history;
+            }
+
+            // 新浪返回JSON数组
+            JsonNode root = objectMapper.readTree(response);
+
+            if (root.isArray()) {
+                for (JsonNode node : root) {
+                    try {
+                        // 每个节点包含: day, open, high, low, close, volume
+                        if (node.has("day") && node.has("close")) {
+                            String date = node.get("day").asText();
+                            String openStr = node.has("open") ? node.get("open").asText() : null;
+                            String closeStr = node.get("close").asText();
+
+                            BigDecimal open = parseBigDecimal(openStr);
+                            BigDecimal close = parseBigDecimal(closeStr);
+
+                            // 只添加有效的价格数据
+                            if (close.compareTo(BigDecimal.ZERO) > 0) {
+                                history.add(new StockInfo.PriceHistoryPoint(date, close, open));
+                            }
+                        }
+                    } catch (Exception e) {
+                        // 跳过解析失败的单个数据点
+                        continue;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing Sina K-line data with open: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return history;
     }
 
     /**

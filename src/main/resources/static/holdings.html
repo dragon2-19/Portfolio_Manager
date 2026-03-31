@@ -164,15 +164,21 @@
             <form id="buyForm" onsubmit="buyStock(event)">
                 <div class="form-group">
                     <label for="buyTicker">Ticker:</label>
-                    <input type="text" id="buyTicker" required placeholder="e.g., 600519">
+                    <input type="text" id="buyTicker" required placeholder="e.g., 600519" onblur="updateBuyPrice()">
                 </div>
                 <div class="form-group">
                     <label for="buyVolume">Volume:</label>
-                    <input type="number" id="buyVolume" required min="1" placeholder="Volume">
+                    <input type="number" id="buyVolume" required min="1" placeholder="Volume" oninput="updateBuyTotal()">
                 </div>
                 <div class="form-group">
-                    <label for="buyOpenPrice">Today's Open Price:</label>
+                    <label for="buyDate">Transaction Date:</label>
+                    <input type="date" id="buyDate" onchange="updateBuyPrice()">
+                    <small class="info-text">Leave empty for today's date</small>
+                </div>
+                <div class="form-group">
+                    <label for="buyOpenPrice">Open Price:</label>
                     <input type="number" id="buyOpenPrice" step="0.0001" readonly placeholder="Auto-fetch">
+                    <small class="info-text" id="buyPriceInfo">Today's open price will be used</small>
                 </div>
                 <div class="form-group">
                     <label>Estimated Total:</label>
@@ -191,15 +197,21 @@
             <form id="sellForm" onsubmit="sellStock(event)">
                 <div class="form-group">
                     <label for="sellTicker">Ticker:</label>
-                    <input type="text" id="sellTicker" required placeholder="e.g., 600519">
+                    <input type="text" id="sellTicker" required placeholder="e.g., 600519" onblur="updateSellPrice()">
                 </div>
                 <div class="form-group">
                     <label for="sellVolume">Volume:</label>
-                    <input type="number" id="sellVolume" required min="1" placeholder="Volume">
+                    <input type="number" id="sellVolume" required min="1" placeholder="Volume" oninput="updateSellProfit()">
                 </div>
                 <div class="form-group">
-                    <label for="sellOpenPrice">Today's Open Price:</label>
+                    <label for="sellDate">Transaction Date:</label>
+                    <input type="date" id="sellDate" onchange="updateSellPrice()">
+                    <small class="info-text">Leave empty for today's date</small>
+                </div>
+                <div class="form-group">
+                    <label for="sellOpenPrice">Open Price:</label>
                     <input type="number" id="sellOpenPrice" step="0.0001" readonly placeholder="Auto-fetch">
+                    <small class="info-text" id="sellPriceInfo">Today's open price will be used</small>
                 </div>
                 <div class="form-group">
                     <label>Estimated Profit:</label>

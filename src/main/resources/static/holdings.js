@@ -15,6 +15,10 @@ window.closeCashDepositModal = closeCashDepositModal;
 window.closeCashWithdrawModal = closeCashWithdrawModal;
 window.closeBuyModal = closeBuyModal;
 window.closeSellModal = closeSellModal;
+window.updateBuyPrice = updateBuyPrice;
+window.updateSellPrice = updateSellPrice;
+window.updateBuyTotal = updateBuyTotal;
+window.updateSellProfit = updateSellProfit;
 
 console.log('holdings.js loaded - functions exported to window');
 
@@ -233,38 +237,61 @@ async function withdrawCash(event) {
     }
 }
 
+// Update buy price based on ticker and date
+async function updateBuyPrice() {
+    const ticker = document.getElementById('buyTicker').value.trim();
+    const date = document.getElementById('buyDate').value;
+    const priceInfo = document.getElementById('buyPriceInfo');
+
+    if (!ticker) return;
+
+    try {
+        let price;
+        if (date) {
+            // Fetch historical price from API
+            const response = await fetch(`${STOCKS_API}/${ticker}/historical-open?date=${date}`);
+            if (response.ok) {
+                const data = await response.json();
+                price = data.price;
+                priceInfo.textContent = `Using ${date} open price`;
+            } else {
+                priceInfo.textContent = 'Unable to fetch historical price';
+                document.getElementById('buyOpenPrice').value = '';
+                return;
+            }
+        } else {
+            // Fetch today's open price
+            const response = await fetch(`${STOCKS_API}/${ticker}`);
+            if (response.ok) {
+                const stockInfo = await response.json();
+                price = stockInfo.open;
+                priceInfo.textContent = "Today's open price";
+            } else {
+                priceInfo.textContent = 'Unable to fetch price';
+                document.getElementById('buyOpenPrice').value = '';
+                return;
+            }
+        }
+
+        document.getElementById('buyOpenPrice').value = price || '';
+        updateBuyTotal();
+    } catch (error) {
+        console.error('Error fetching stock price:', error);
+        priceInfo.textContent = 'Error fetching price';
+        document.getElementById('buyOpenPrice').value = '';
+    }
+}
+
 // Setup buy modal listeners (called once on page load)
 function setupBuyModalListeners() {
     console.log('Setting up buy modal listeners');
     try {
-        // Listen to stock ticker input, auto-fetch opening price
-        const tickerInput = document.getElementById('buyTicker');
-        if (tickerInput) {
-            tickerInput.addEventListener('input', async function() {
-                const ticker = this.value.trim();
-                if (ticker.length === 6) {
-                    try {
-                        const volume = parseInt(document.getElementById('buyVolume').value) || 1;
-                        // Fetch stock information (including opening price)
-                        const response = await fetch(`${STOCKS_API}/${ticker}`);
-                        const stockInfo = await response.json();
-                        document.getElementById('buyOpenPrice').value = stockInfo.open || 0;
-                        updateBuyTotalAmount();
-                    } catch (error) {
-                        console.error('Error fetching stock info:', error);
-                    }
-                }
-            });
-
-            // Listen to volume input
-            const volumeInput = document.getElementById('buyVolume');
-            if (volumeInput) {
-                volumeInput.addEventListener('input', updateBuyTotalAmount);
-            }
-            console.log('Buy modal listeners setup complete');
-        } else {
-            console.error('buyTicker element not found');
+        // Listen to volume input
+        const volumeInput = document.getElementById('buyVolume');
+        if (volumeInput) {
+            volumeInput.addEventListener('input', updateBuyTotal);
         }
+        console.log('Buy modal listeners setup complete');
     } catch (error) {
         console.error('Error setting up buy modal listeners:', error);
     }
@@ -285,7 +312,7 @@ async function openBuyModal() {
 }
 
 // Update buy total amount
-function updateBuyTotalAmount() {
+function updateBuyTotal() {
     const price = parseFloat(document.getElementById('buyOpenPrice').value) || 0;
     const volume = parseInt(document.getElementById('buyVolume').value) || 0;
     const total = price * volume * 1.0002; // Add fee 0.02%
@@ -299,10 +326,16 @@ async function buyStock(event) {
 
     const ticker = document.getElementById('buyTicker').value.trim();
     const volume = parseInt(document.getElementById('buyVolume').value);
-    console.log('Buy ticker:', ticker, 'volume:', volume);
+    const purchaseDate = document.getElementById('buyDate').value || '';
+    console.log('Buy ticker:', ticker, 'volume:', volume, 'date:', purchaseDate);
 
     try {
-        const response = await fetch(`${HOLDINGS_API}/buy?ticker=${ticker}&volume=${volume}`, {
+        let url = `${HOLDINGS_API}/buy?ticker=${encodeURIComponent(ticker)}&volume=${volume}`;
+        if (purchaseDate) {
+            url += `&purchaseDate=${encodeURIComponent(purchaseDate)}`;
+        }
+
+        const response = await fetch(url, {
             method: 'POST'
         });
 
@@ -324,37 +357,61 @@ async function buyStock(event) {
     }
 }
 
+// Update sell price based on ticker and date
+async function updateSellPrice() {
+    const ticker = document.getElementById('sellTicker').value.trim();
+    const date = document.getElementById('sellDate').value;
+    const priceInfo = document.getElementById('sellPriceInfo');
+
+    if (!ticker) return;
+
+    try {
+        let price;
+        if (date) {
+            // Fetch historical price from API
+            const response = await fetch(`${STOCKS_API}/${ticker}/historical-open?date=${date}`);
+            if (response.ok) {
+                const data = await response.json();
+                price = data.price;
+                priceInfo.textContent = `Using ${date} open price`;
+            } else {
+                priceInfo.textContent = 'Unable to fetch historical price';
+                document.getElementById('sellOpenPrice').value = '';
+                return;
+            }
+        } else {
+            // Fetch today's open price
+            const response = await fetch(`${STOCKS_API}/${ticker}`);
+            if (response.ok) {
+                const stockInfo = await response.json();
+                price = stockInfo.open;
+                priceInfo.textContent = "Today's open price";
+            } else {
+                priceInfo.textContent = 'Unable to fetch price';
+                document.getElementById('sellOpenPrice').value = '';
+                return;
+            }
+        }
+
+        document.getElementById('sellOpenPrice').value = price || '';
+        updateSellProfit();
+    } catch (error) {
+        console.error('Error fetching stock price:', error);
+        priceInfo.textContent = 'Error fetching price';
+        document.getElementById('sellOpenPrice').value = '';
+    }
+}
+
 // Setup sell modal listeners (called once on page load)
 function setupSellModalListeners() {
     console.log('Setting up sell modal listeners');
     try {
-        // Listen to stock ticker input
-        const tickerInput = document.getElementById('sellTicker');
-        if (tickerInput) {
-            tickerInput.addEventListener('input', async function() {
-                const ticker = this.value.trim();
-                if (ticker.length === 6) {
-                    try {
-                        const volume = parseInt(document.getElementById('sellVolume').value) || 1;
-                        const response = await fetch(`${STOCKS_API}/${ticker}`);
-                        const stockInfo = await response.json();
-                        document.getElementById('sellOpenPrice').value = stockInfo.open || 0;
-                        updateSellProfit();
-                    } catch (error) {
-                        console.error('Error fetching stock info:', error);
-                    }
-                }
-            });
-
-            // Listen to volume input
-            const volumeInput = document.getElementById('sellVolume');
-            if (volumeInput) {
-                volumeInput.addEventListener('input', updateSellProfit);
-            }
-            console.log('Sell modal listeners setup complete');
-        } else {
-            console.error('sellTicker element not found');
+        // Listen to volume input
+        const volumeInput = document.getElementById('sellVolume');
+        if (volumeInput) {
+            volumeInput.addEventListener('input', updateSellProfit);
         }
+        console.log('Sell modal listeners setup complete');
     } catch (error) {
         console.error('Error setting up sell modal listeners:', error);
     }
@@ -389,10 +446,16 @@ async function sellStock(event) {
 
     const ticker = document.getElementById('sellTicker').value.trim();
     const volume = parseInt(document.getElementById('sellVolume').value);
-    console.log('Sell ticker:', ticker, 'volume:', volume);
+    const sellDate = document.getElementById('sellDate').value || '';
+    console.log('Sell ticker:', ticker, 'volume:', volume, 'date:', sellDate);
 
     try {
-        const response = await fetch(`${HOLDINGS_API}/sell?ticker=${ticker}&volume=${volume}`, {
+        let url = `${HOLDINGS_API}/sell?ticker=${encodeURIComponent(ticker)}&volume=${volume}`;
+        if (sellDate) {
+            url += `&sellDate=${encodeURIComponent(sellDate)}`;
+        }
+
+        const response = await fetch(url, {
             method: 'POST'
         });
 

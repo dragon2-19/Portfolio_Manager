@@ -157,6 +157,11 @@
                     <label for="addToPortfolioVolume">Volume:</label>
                     <input type="number" id="addToPortfolioVolume" required min="1" placeholder="Volume">
                 </div>
+                <div class="form-group" id="stockDateGroup">
+                    <label for="addToPortfolioStockDate">Transaction Date:</label>
+                    <input type="date" id="addToPortfolioStockDate">
+                    <small class="info-text">Leave empty for today's date. Historical opening price will be used for the selected date.</small>
+                </div>
                 <div class="form-group" id="priceInputGroup">
                     <label for="addToPortfolioPrice">Purchase Price:</label>
                     <input type="number" id="addToPortfolioPrice" step="0.0001" required min="0" placeholder="Price">
@@ -166,7 +171,7 @@
                     <input type="date" id="addToPortfolioDate" required>
                 </div>
                 <div class="form-group info-text" id="buyInfo" style="display: none; color: #666; font-size: 12px;">
-                    Note: Stocks and bonds will use today's opening price for trading
+                    Note: You can select a historical date. The opening price of that date will be used for trading.
                 </div>
                 <button type="submit" class="btn btn-primary">Add</button>
             </form>

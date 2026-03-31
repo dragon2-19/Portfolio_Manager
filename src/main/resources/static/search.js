@@ -231,17 +231,20 @@ function togglePriceInput() {
     const assetType = document.getElementById('addToPortfolioAssetType').value;
     const priceInputGroup = document.getElementById('priceInputGroup');
     const dateInputGroup = document.getElementById('dateInputGroup');
+    const stockDateGroup = document.getElementById('stockDateGroup');
     const buyInfo = document.getElementById('buyInfo');
 
     if (assetType === 'CASH') {
         // Cash needs price and date input
         priceInputGroup.style.display = 'block';
         dateInputGroup.style.display = 'block';
+        stockDateGroup.style.display = 'none';
         buyInfo.style.display = 'none';
     } else {
-        // Stocks and bonds don't need price and date (use today's opening price)
+        // Stocks and bonds can select transaction date
         priceInputGroup.style.display = 'none';
         dateInputGroup.style.display = 'none';
+        stockDateGroup.style.display = 'block';
         buyInfo.style.display = 'block';
     }
 }
@@ -286,8 +289,15 @@ async function addToPortfolio(event) {
         }
     } else {
         // For stocks and bonds, use buy interface
+        const purchaseDate = document.getElementById('addToPortfolioStockDate').value || '';
+
         try {
-            const response = await fetch(`${HOLDINGS_API}/buy?ticker=${ticker}&volume=${volume}`, {
+            let url = `${HOLDINGS_API}/buy?ticker=${encodeURIComponent(ticker)}&volume=${volume}`;
+            if (purchaseDate) {
+                url += `&purchaseDate=${encodeURIComponent(purchaseDate)}`;
+            }
+
+            const response = await fetch(url, {
                 method: 'POST'
             });
 

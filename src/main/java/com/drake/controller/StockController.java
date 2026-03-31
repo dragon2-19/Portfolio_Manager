@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stocks")
@@ -28,6 +31,18 @@ public class StockController {
             @RequestParam(defaultValue = "1mo") String range) {
         StockInfo stockInfo = stockService.getStockInfoWithHistory(ticker.toUpperCase(), range);
         return ResponseEntity.ok(stockInfo);
+    }
+
+    @GetMapping("/{ticker}/historical-open")
+    public ResponseEntity<Map<String, Object>> getHistoricalOpenPrice(
+            @PathVariable String ticker,
+            @RequestParam String date) {
+        BigDecimal price = stockService.getHistoricalOpenPrice(ticker.toUpperCase(), date);
+        Map<String, Object> response = new HashMap<>();
+        response.put("ticker", ticker);
+        response.put("date", date);
+        response.put("price", price);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/search")

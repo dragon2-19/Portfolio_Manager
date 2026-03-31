@@ -86,9 +86,10 @@ public class HoldingController {
     @PostMapping("/buy")
     public ResponseEntity<?> buyStock(
             @RequestParam String ticker,
-            @RequestParam Integer volume) {
+            @RequestParam Integer volume,
+            @RequestParam(required = false) String purchaseDate) {
         try {
-            Holding holding = holdingService.buyStock(ticker, volume);
+            Holding holding = holdingService.buyStock(ticker, volume, purchaseDate);
             return ResponseEntity.status(HttpStatus.CREATED).body(holding);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -101,9 +102,10 @@ public class HoldingController {
     @PostMapping("/sell")
     public ResponseEntity<?> sellStock(
             @RequestParam String ticker,
-            @RequestParam Integer volume) {
+            @RequestParam Integer volume,
+            @RequestParam(required = false) String sellDate) {
         try {
-            Holding holding = holdingService.sellStock(ticker, volume);
+            Holding holding = holdingService.sellStock(ticker, volume, sellDate);
             return ResponseEntity.ok(holding);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

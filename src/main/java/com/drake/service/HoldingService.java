@@ -108,11 +108,25 @@ public class HoldingService {
     /**
      * 买入股票或债券
      */
-    public Holding buyStock(String ticker, Integer volume) {
-        // 获取股票今日开盘价
-        BigDecimal openPrice = stockService.getTodayOpenPrice(ticker);
-        if (openPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("无法获取股票价格");
+    public Holding buyStock(String ticker, Integer volume, String purchaseDate) {
+        // 根据是否有购买日期，决定使用今日开盘价还是历史开盘价
+        BigDecimal openPrice;
+        LocalDate actualPurchaseDate;
+
+        if (purchaseDate != null && !purchaseDate.isEmpty()) {
+            // 使用指定日期的开盘价
+            openPrice = stockService.getHistoricalOpenPrice(ticker, purchaseDate);
+            actualPurchaseDate = LocalDate.parse(purchaseDate);
+            if (openPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("无法获取 " + purchaseDate + " 的股票价格，请检查日期是否正确或股票是否已上市");
+            }
+        } else {
+            // 使用今日开盘价
+            openPrice = stockService.getTodayOpenPrice(ticker);
+            actualPurchaseDate = LocalDate.now();
+            if (openPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("无法获取股票价格");
+            }
         }
 
         // 获取股票信息
@@ -151,7 +165,7 @@ public class HoldingService {
             BigDecimal newTotalCost = oldTotalCost.add(totalAmount);
             holding.setVolume(holding.getVolume() + volume);
             holding.setPurchasePrice(newTotalCost.divide(new BigDecimal(holding.getVolume()), 4, RoundingMode.HALF_UP));
-            holding.setCurrentPrice(openPrice);
+            holding.setCurrentPrice(stockService.getTodayOpenPrice(ticker)); // 当前价格使用今日开盘价
             holding.setStockName(stockName);
             holdingRepository.save(holding);
         } else {
@@ -162,8 +176,8 @@ public class HoldingService {
             holding.setVolume(volume);
             holding.setAssetType(assetType);
             holding.setPurchasePrice(totalAmount.divide(new BigDecimal(volume), 4, RoundingMode.HALF_UP));
-            holding.setPurchaseDate(LocalDate.now());
-            holding.setCurrentPrice(openPrice);
+            holding.setPurchaseDate(actualPurchaseDate);
+            holding.setCurrentPrice(stockService.getTodayOpenPrice(ticker)); // 当前价格使用今日开盘价
             holding = holdingRepository.save(holding);
         }
 
@@ -172,7 +186,7 @@ public class HoldingService {
         holdingRepository.save(cash);
 
         // 创建买入交易记录
-        transactionService.createBuyTransaction(holding, ticker, stockName, volume, openPrice, fee, totalAmount);
+        transactionService.createBuyTransaction(holding, ticker, stockName, volume, openPrice, fee, totalAmount, actualPurchaseDate);
 
         return holding;
     }
@@ -180,11 +194,25 @@ public class HoldingService {
     /**
      * 卖出股票或债券
      */
-    public Holding sellStock(String ticker, Integer volume) {
-        // 获取股票今日开盘价
-        BigDecimal openPrice = stockService.getTodayOpenPrice(ticker);
-        if (openPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("无法获取股票价格");
+    public Holding sellStock(String ticker, Integer volume, String sellDate) {
+        // 根据是否有卖出日期，决定使用今日开盘价还是历史开盘价
+        BigDecimal openPrice;
+        LocalDate actualSellDate;
+
+        if (sellDate != null && !sellDate.isEmpty()) {
+            // 使用指定日期的开盘价
+            openPrice = stockService.getHistoricalOpenPrice(ticker, sellDate);
+            actualSellDate = LocalDate.parse(sellDate);
+            if (openPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("无法获取 " + sellDate + " 的股票价格，请检查日期是否正确或股票是否已上市");
+            }
+        } else {
+            // 使用今日开盘价
+            openPrice = stockService.getTodayOpenPrice(ticker);
+            actualSellDate = LocalDate.now();
+            if (openPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("无法获取股票价格");
+            }
         }
 
         // 获取股票信息
@@ -239,7 +267,7 @@ public class HoldingService {
         holdingRepository.save(cash);
 
         // 创建卖出交易记录
-        transactionService.createSellTransaction(holding, ticker, stockName, volume, openPrice, fee, amount, profitLoss);
+        transactionService.createSellTransaction(holding, ticker, stockName, volume, openPrice, fee, amount, profitLoss, actualSellDate);
 
         return holding.getVolume() > 0 ? holding : null;
     }
