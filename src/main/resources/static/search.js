@@ -1,12 +1,155 @@
 let priceChart = null;
+let changeChart = null;
 let currentStock = null;
 let currentRange = '1mo';
+let shChart = null;
+let szChart = null;
+let cybChart = null;
 
 // Handle search key press
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
         searchStock();
     }
+}
+
+// Initialize market overview charts on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await initMarketOverview();
+});
+
+// Initialize market overview
+async function initMarketOverview() {
+    try {
+        // Load data for Shanghai Composite (000001)
+        const shResponse = await fetch(`${STOCKS_API}/000001/history?range=3mo`);
+        const shData = await shResponse.json();
+        initChart('shChart', '上证指数', shData, '#667eea');
+
+        // Load data for Shenzhen Component (399001)
+        const szResponse = await fetch(`${STOCKS_API}/399001/history?range=3mo`);
+        const szData = await szResponse.json();
+        initChart('szChart', '深证成指', szData, '#764ba2');
+
+        // Load data for ChiNext Index (399006)
+        const cybResponse = await fetch(`${STOCKS_API}/399006/history?range=3mo`);
+        const cybData = await cybResponse.json();
+        initChart('cybChart', '创业板指', cybData, '#f093fb');
+    } catch (error) {
+        console.error('Error initializing market overview:', error);
+    }
+}
+
+// Handle search input - show market overview button when text is entered
+function handleSearchInput(event) {
+    const value = event.target.value.trim();
+    const showMarketBtn = document.getElementById('showMarketBtn');
+    const marketOverview = document.getElementById('marketOverview');
+
+    if (value.length > 0) {
+        showMarketBtn.style.display = 'inline-block';
+    } else {
+        showMarketBtn.style.display = 'none';
+        marketOverview.style.display = 'block';
+    }
+}
+
+// Show market overview
+function showMarketOverview() {
+    const marketOverview = document.getElementById('marketOverview');
+    const stockDetails = document.getElementById('stockDetails');
+    const searchResults = document.getElementById('searchResults');
+    const showMarketBtn = document.getElementById('showMarketBtn');
+    const searchInput = document.getElementById('searchInput');
+
+    searchInput.value = '';
+    stockDetails.style.display = 'none';
+    searchResults.style.display = 'none';
+    marketOverview.style.display = 'block';
+    showMarketBtn.style.display = 'none';
+}
+
+// Initialize a single market chart
+function initChart(canvasId, label, stockInfo, color) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+
+    if (!stockInfo.priceHistory || stockInfo.priceHistory.length === 0) {
+        return;
+    }
+
+    const labels = stockInfo.priceHistory.map(point => point.date);
+    const data = stockInfo.priceHistory.map(point => point.price);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: color,
+                backgroundColor: color + '20',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: color,
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: function(context) {
+                            return '日期: ' + context[0].label;
+                        },
+                        label: function(context) {
+                            return label + ': ' + context.raw.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 8,
+                        color: '#666'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(0);
+                        },
+                        color: '#666'
+                    }
+                }
+            }
+        }
+    });
 }
 
 // Quick search
@@ -22,6 +165,12 @@ async function searchStock() {
     if (!query) {
         alert('Please enter a stock ticker or name');
         return;
+    }
+
+    // Hide market overview when searching
+    const marketOverview = document.getElementById('marketOverview');
+    if (marketOverview) {
+        marketOverview.style.display = 'none';
     }
 
     try {
@@ -112,11 +261,12 @@ async function displayStockDetails(stockInfo) {
         document.getElementById('searchResults').style.display = 'none';
     }
 
-    // Update price chart
+    // Update all charts
     updatePriceChart(stockInfo);
+    createKLineChart(stockInfo);
 }
 
-// Update price chart
+// Update price chart (combination of price line and volume bars)
 function updatePriceChart(stockInfo) {
     const ctx = document.getElementById('priceChart').getContext('2d');
 
@@ -129,23 +279,196 @@ function updatePriceChart(stockInfo) {
     }
 
     const labels = stockInfo.priceHistory.map(point => point.date);
-    const data = stockInfo.priceHistory.map(point => point.price);
+    const priceData = stockInfo.priceHistory.map(point => point.price);
+    const volumeData = stockInfo.priceHistory.map(point => point.volume || 0);
+
+    // Calculate max volume for normalization
+    const maxVolume = Math.max(...volumeData);
 
     priceChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: stockInfo.ticker + ' Price',
-                data: data,
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 2,
-                pointHoverRadius: 6
-            }]
+            datasets: [
+                {
+                    type: 'line',
+                    label: stockInfo.ticker + ' Price',
+                    data: priceData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    yAxisID: 'y',
+                    order: 1
+                },
+                {
+                    type: 'bar',
+                    label: 'Volume',
+                    data: volumeData,
+                    backgroundColor: 'rgba(118, 75, 162, 0.3)',
+                    borderColor: 'rgba(118, 75, 162, 0.5)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    order: 2,
+                    barThickness: 8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.type === 'line') {
+                                return `价格: ¥${context.raw.toFixed(2)}`;
+                            } else {
+                                return `成交量: ${formatNumber(context.raw)}`;
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 10,
+                        color: '#666'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '¥' + value.toFixed(2);
+                        },
+                        color: '#666'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return formatNumber(value);
+                        },
+                        color: '#666'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create K-line chart (Candlestick chart)
+function createKLineChart(stockInfo) {
+    const ctx = document.getElementById('changeChart').getContext('2d');
+
+    if (changeChart) {
+        changeChart.destroy();
+    }
+
+    if (!stockInfo.priceHistory || stockInfo.priceHistory.length === 0) {
+        return;
+    }
+
+    const labels = stockInfo.priceHistory.map(point => point.date);
+
+    // Prepare K-line data: each candlestick needs [open, close, low, high]
+    // Since Chart.js doesn't natively support candlestick, we'll use a simplified approach
+    // with floating bars for body and lines for wicks
+
+    const bodyData = [];
+    const bodyColors = [];
+    const borderColors = [];
+    const highData = [];
+    const lowData = [];
+
+    stockInfo.priceHistory.forEach(point => {
+        const open = point.open != null ? point.open : point.price;
+        const close = point.price;
+        const high = point.high != null ? point.high : Math.max(open, close);
+        const low = point.low != null ? point.low : Math.min(open, close);
+
+        const isUp = close >= open;
+        bodyColors.push(isUp ? 'rgba(239, 83, 80, 0.8)' : 'rgba(76, 175, 80, 0.8)');
+        borderColors.push(isUp ? '#ef5350' : '#4caf50');
+
+        // Body: [min(open, close), max(open, close)]
+        bodyData.push([Math.min(open, close), Math.max(open, close)]);
+        highData.push(high);
+        lowData.push(low);
+    });
+
+    changeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'High',
+                    data: highData,
+                    type: 'line',
+                    borderColor: 'rgba(255, 99, 132, 0.3)',
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: false,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Low',
+                    data: lowData,
+                    type: 'line',
+                    borderColor: 'rgba(54, 162, 235, 0.3)',
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: false,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'K-line Body',
+                    data: bodyData,
+                    backgroundColor: bodyColors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    barThickness: 6,
+                    borderRadius: 0,
+                    yAxisID: 'y'
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -159,9 +482,25 @@ function updatePriceChart(stockInfo) {
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
                     callbacks: {
                         label: function(context) {
-                            return `Price: ${formatCurrency(context.raw)}`;
+                            const point = stockInfo.priceHistory[context.dataIndex];
+                            const open = point.open != null ? point.open : point.price;
+                            const close = point.price;
+                            const high = point.high != null ? point.high : Math.max(open, close);
+                            const low = point.low != null ? point.low : Math.min(open, close);
+                            const change = close - open;
+                            const changePercent = ((change / open) * 100).toFixed(2);
+                            const icon = change >= 0 ? '↑' : '↓';
+
+                            return [
+                                `开盘: ¥${open.toFixed(2)}`,
+                                `收盘: ¥${close.toFixed(2)}`,
+                                `最高: ¥${high.toFixed(2)}`,
+                                `最低: ¥${low.toFixed(2)}`,
+                                `涨跌幅: ${icon} ${Math.abs(changePercent)}%`
+                            ];
                         }
                     }
                 }
@@ -170,13 +509,21 @@ function updatePriceChart(stockInfo) {
                 x: {
                     grid: {
                         display: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 10,
+                        color: '#666'
                     }
                 },
                 y: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toFixed(2);
-                        }
+                            return '¥' + value.toFixed(2);
+                        },
+                        color: '#666'
                     }
                 }
             }
@@ -327,3 +674,8 @@ async function refreshStockInfo() {
 function closeAddToPortfolioModal() {
     document.getElementById('addToPortfolioModal').style.display = 'none';
 }
+
+// Export functions to window for HTML onclick handlers
+window.handleKeyPress = handleKeyPress;
+window.handleSearchInput = handleSearchInput;
+window.showMarketOverview = showMarketOverview;

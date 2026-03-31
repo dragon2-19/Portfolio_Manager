@@ -485,13 +485,17 @@ public class StockService {
                             String date = node.get("day").asText();
                             String openStr = node.has("open") ? node.get("open").asText() : null;
                             String closeStr = node.get("close").asText();
+                            String highStr = node.has("high") ? node.get("high").asText() : null;
+                            String lowStr = node.has("low") ? node.get("low").asText() : null;
 
                             BigDecimal open = parseBigDecimal(openStr);
                             BigDecimal close = parseBigDecimal(closeStr);
+                            BigDecimal high = parseBigDecimal(highStr);
+                            BigDecimal low = parseBigDecimal(lowStr);
 
                             // 只添加有效的价格数据
                             if (close.compareTo(BigDecimal.ZERO) > 0) {
-                                history.add(new StockInfo.PriceHistoryPoint(date, close, open));
+                                history.add(new StockInfo.PriceHistoryPoint(date, close, open, high, low));
                             }
                         }
                     } catch (Exception e) {

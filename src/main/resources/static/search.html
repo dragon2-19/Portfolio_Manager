@@ -47,9 +47,12 @@
             <!-- Search Section -->
             <section class="search-section">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Enter ticker or name (e.g., 600000)" onkeypress="handleKeyPress(event)">
+                    <input type="text" id="searchInput" placeholder="Enter ticker or name (e.g., 600000)" onkeypress="handleKeyPress(event)" oninput="handleSearchInput(event)">
                     <button class="btn btn-primary" onclick="searchStock()">
                         🔍 Search
+                    </button>
+                    <button class="btn btn-secondary" onclick="showMarketOverview()" id="showMarketBtn" style="display: none;">
+                        📊 Market Overview
                     </button>
                 </div>
                 <div class="quick-search">
@@ -105,7 +108,7 @@
                 <!-- Price Chart -->
                 <div class="chart-section">
                     <div class="chart-header">
-                        <h3>📈 Price Trend</h3>
+                        <h3>📈 Price Trend & Volume</h3>
                         <div class="chart-controls">
                             <button class="chart-btn active" onclick="changeRange('1mo', this)">1M</button>
                             <button class="chart-btn" onclick="changeRange('3mo', this)">3M</button>
@@ -113,8 +116,18 @@
                             <button class="chart-btn" onclick="changeRange('1y', this)">1Y</button>
                         </div>
                     </div>
-                    <div class="chart-wrapper">
+                    <div class="chart-wrapper large">
                         <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Price Change K-line Chart -->
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3>📈 K-Line Chart</h3>
+                    </div>
+                    <div class="chart-wrapper large">
+                        <canvas id="changeChart"></canvas>
                     </div>
                 </div>
 
@@ -133,6 +146,31 @@
             <section id="searchResults" class="search-results-section" style="display: none;">
                 <h3>Search Results</h3>
                 <div id="searchResultsList" class="search-results-list">
+                </div>
+            </section>
+
+            <!-- Market Overview -->
+            <section id="marketOverview" class="market-overview-section">
+                <h2>📊 Market Overview</h2>
+                <div class="market-charts-grid">
+                    <div class="market-chart-card">
+                        <h3>上证指数 (000001)</h3>
+                        <div class="chart-wrapper small">
+                            <canvas id="shChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="market-chart-card">
+                        <h3>深证成指 (399001)</h3>
+                        <div class="chart-wrapper small">
+                            <canvas id="szChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="market-chart-card">
+                        <h3>创业板指 (399006)</h3>
+                        <div class="chart-wrapper small">
+                            <canvas id="cybChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
