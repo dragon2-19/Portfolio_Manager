@@ -47,18 +47,18 @@
             <!-- Search Section -->
             <section class="search-section">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="输入股票代码（如：AAPL, GOOGL）" onkeypress="handleKeyPress(event)">
+                    <input type="text" id="searchInput" placeholder="输入股票代码或名称（如：600000, 平安银行）" onkeypress="handleKeyPress(event)">
                     <button class="btn btn-primary" onclick="searchStock()">
                         🔍 搜索
                     </button>
                 </div>
                 <div class="quick-search">
                     <span>快速搜索：</span>
-                    <button class="quick-btn" onclick="quickSearch('AAPL')">AAPL</button>
-                    <button class="quick-btn" onclick="quickSearch('GOOGL')">GOOGL</button>
-                    <button class="quick-btn" onclick="quickSearch('MSFT')">MSFT</button>
-                    <button class="quick-btn" onclick="quickSearch('TSLA')">TSLA</button>
-                    <button class="quick-btn" onclick="quickSearch('AMZN')">AMZN</button>
+                    <button class="quick-btn" onclick="quickSearch('600000')">浦发银行</button>
+                    <button class="quick-btn" onclick="quickSearch('600519')">贵州茅台</button>
+                    <button class="quick-btn" onclick="quickSearch('601318')">中国平安</button>
+                    <button class="quick-btn" onclick="quickSearch('000001')">平安银行</button>
+                    <button class="quick-btn" onclick="quickSearch('600036')">招商银行</button>
                 </div>
             </section>
 

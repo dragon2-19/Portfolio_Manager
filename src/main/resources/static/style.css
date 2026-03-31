@@ -777,6 +777,44 @@ tbody tr:hover {
     gap: 15px;
 }
 
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.search-result-item:hover {
+    background: #e3f2fd;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.result-ticker {
+    flex: 0 0 120px;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.result-name {
+    flex: 1;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.result-price {
+    flex: 0 0 120px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #4caf50;
+    text-align: right;
+}
+
 /* ==================== Responsive Design ==================== */
 @media (max-width: 1200px) {
     .sidebar {

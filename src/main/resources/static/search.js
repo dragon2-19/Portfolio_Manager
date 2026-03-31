@@ -17,22 +17,68 @@ function quickSearch(ticker) {
 
 // Search stock
 async function searchStock() {
-    const ticker = document.getElementById('searchInput').value.trim().toUpperCase();
+    const query = document.getElementById('searchInput').value.trim();
 
-    if (!ticker) {
-        alert('请输入股票代码');
+    if (!query) {
+        alert('请输入股票代码或名称');
         return;
     }
 
     try {
-        const response = await fetch(`${STOCKS_API}/${ticker}`);
-        const stockInfo = await response.json();
+        // 先尝试搜索
+        const searchResponse = await fetch(`${STOCKS_API}/search?query=${encodeURIComponent(query)}`);
+        const searchResults = await searchResponse.json();
 
-        displayStockDetails(stockInfo);
+        if (searchResults && searchResults.length > 0) {
+            // 如果有搜索结果，显示第一个结果
+            const ticker = searchResults[0].ticker;
+            const response = await fetch(`${STOCKS_API}/${ticker}`);
+            const stockInfo = await response.json();
+
+            displayStockDetails(stockInfo);
+
+            // 如果有多个搜索结果，显示搜索结果列表
+            if (searchResults.length > 1) {
+                displaySearchResults(searchResults);
+            }
+        } else {
+            // 如果没有搜索结果，直接查询股票代码
+            const ticker = query.toUpperCase();
+            const response = await fetch(`${STOCKS_API}/${ticker}`);
+            const stockInfo = await response.json();
+
+            if (stockInfo && stockInfo.currentPrice > 0) {
+                displayStockDetails(stockInfo);
+            } else {
+                alert('未找到匹配的股票，请检查输入');
+            }
+        }
     } catch (error) {
         console.error('Error searching stock:', error);
-        alert('搜索失败，请检查股票代码');
+        alert('搜索失败，请检查网络连接');
     }
+}
+
+// Display search results
+function displaySearchResults(results) {
+    const searchResultsDiv = document.getElementById('searchResults');
+    const searchResultsList = document.getElementById('searchResultsList');
+
+    searchResultsList.innerHTML = '';
+
+    results.forEach(stock => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+        resultItem.innerHTML = `
+            <div class="result-ticker">${stock.ticker}</div>
+            <div class="result-name">${stock.name}</div>
+            <div class="result-price">${formatCurrency(stock.currentPrice)}</div>
+        `;
+        resultItem.onclick = () => displayStockDetails(stock);
+        searchResultsList.appendChild(resultItem);
+    });
+
+    searchResultsDiv.style.display = 'block';
 }
 
 // Display stock details
@@ -60,9 +106,11 @@ async function displayStockDetails(stockInfo) {
     document.getElementById('marketCap').textContent = formatCurrency(stockInfo.marketCap);
     document.getElementById('lastUpdated').textContent = formatDateTime(stockInfo.lastUpdated);
 
-    // Show details section
+    // Show details section and hide search results
     document.getElementById('stockDetails').style.display = 'block';
-    document.getElementById('searchResults').style.display = 'none';
+    if (document.getElementById('searchResults')) {
+        document.getElementById('searchResults').style.display = 'none';
+    }
 
     // Update price chart
     updatePriceChart(stockInfo);
@@ -127,7 +175,7 @@ function updatePriceChart(stockInfo) {
                 y: {
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toFixed(2);
+                            return '¥' + value.toFixed(2);
                         }
                     }
                 }

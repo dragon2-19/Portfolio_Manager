@@ -5,8 +5,8 @@ const TRANSACTIONS_API = 'http://localhost:8080/api/transactions';
 
 // Format currency
 function formatCurrency(value) {
-    if (value === null || value === undefined || isNaN(value)) return '$0.00';
-    return '$' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    if (value === null || value === undefined || isNaN(value)) return '¥0.00';
+    return '¥' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }
 
 // Format percentage
