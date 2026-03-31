@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -68,7 +69,7 @@ public class Holding {
     public BigDecimal getProfitLossPercentage() {
         BigDecimal totalCost = getTotalCost();
         if (totalCost.compareTo(BigDecimal.ZERO) != 0) {
-            return getProfitLoss().divide(totalCost, 4, BigDecimal.ROUND_HALF_UP)
+            return getProfitLoss().divide(totalCost, 4, RoundingMode.HALF_UP)
                                 .multiply(new BigDecimal(100));
         }
         return BigDecimal.ZERO;

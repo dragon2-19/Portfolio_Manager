@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -71,7 +72,7 @@ public class HoldingService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalProfitLossPercentage = totalCost.compareTo(BigDecimal.ZERO) != 0
-                ? totalProfitLoss.divide(totalCost, 4, BigDecimal.ROUND_HALF_UP)
+                ? totalProfitLoss.divide(totalCost, 4, RoundingMode.HALF_UP)
                                 .multiply(new BigDecimal(100))
                 : BigDecimal.ZERO;
 
