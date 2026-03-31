@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>投资组合 - 股票搜索</title>
+    <title>Portfolio - Stock Search</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -12,27 +12,27 @@
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2>📊 投资组合</h2>
+                <h2>📊 Portfolio</h2>
             </div>
             <ul class="sidebar-menu">
                 <li>
                     <a href="dashboard.html" class="nav-link">
-                        <span>📈</span> 仪表板
+                        <span>📈</span> Dashboard
                     </a>
                 </li>
                 <li>
                     <a href="holdings.html" class="nav-link">
-                        <span>💼</span> 持仓详情
+                        <span>💼</span> Holdings
                     </a>
                 </li>
                 <li>
                     <a href="transactions.html" class="nav-link">
-                        <span>📝</span> 交易记录
+                        <span>📝</span> Transactions
                     </a>
                 </li>
                 <li class="active">
                     <a href="search.html" class="nav-link">
-                        <span>🔍</span> 股票搜索
+                        <span>🔍</span> Search
                     </a>
                 </li>
             </ul>
@@ -41,24 +41,24 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <h1>股票搜索</h1>
+                <h1>Stock Search</h1>
             </header>
 
             <!-- Search Section -->
             <section class="search-section">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="输入股票代码或名称（如：600000, 平安银行）" onkeypress="handleKeyPress(event)">
+                    <input type="text" id="searchInput" placeholder="Enter ticker or name (e.g., 600000)" onkeypress="handleKeyPress(event)">
                     <button class="btn btn-primary" onclick="searchStock()">
-                        🔍 搜索
+                        🔍 Search
                     </button>
                 </div>
                 <div class="quick-search">
-                    <span>快速搜索：</span>
-                    <button class="quick-btn" onclick="quickSearch('600000')">浦发银行</button>
-                    <button class="quick-btn" onclick="quickSearch('600519')">贵州茅台</button>
-                    <button class="quick-btn" onclick="quickSearch('601318')">中国平安</button>
-                    <button class="quick-btn" onclick="quickSearch('000001')">平安银行</button>
-                    <button class="quick-btn" onclick="quickSearch('600036')">招商银行</button>
+                    <span>Quick Search:</span>
+                    <button class="quick-btn" onclick="quickSearch('600000')">SPDB</button>
+                    <button class="quick-btn" onclick="quickSearch('600519')">Moutai</button>
+                    <button class="quick-btn" onclick="quickSearch('601318')">Ping An</button>
+                    <button class="quick-btn" onclick="quickSearch('000001')">Ping An Bank</button>
+                    <button class="quick-btn" onclick="quickSearch('600036')">CMB</button>
                 </div>
             </section>
 
@@ -66,7 +66,7 @@
             <section id="stockDetails" class="stock-details-section" style="display: none;">
                 <div class="stock-header">
                     <div class="stock-info">
-                        <h2 id="stockName">股票名称</h2>
+                        <h2 id="stockName">Stock Name</h2>
                         <div class="stock-ticker" id="stockTicker">AAPL</div>
                     </div>
                     <div class="stock-price">
@@ -77,27 +77,27 @@
 
                 <div class="stock-stats-grid">
                     <div class="stock-stat">
-                        <div class="stat-label">开盘价</div>
+                        <div class="stat-label">Open</div>
                         <div class="stat-value" id="openPrice">$0.00</div>
                     </div>
                     <div class="stock-stat">
-                        <div class="stat-label">最高价</div>
+                        <div class="stat-label">High</div>
                         <div class="stat-value" id="highPrice">$0.00</div>
                     </div>
                     <div class="stock-stat">
-                        <div class="stat-label">最低价</div>
+                        <div class="stat-label">Low</div>
                         <div class="stat-value" id="lowPrice">$0.00</div>
                     </div>
                     <div class="stock-stat">
-                        <div class="stat-label">成交量</div>
+                        <div class="stat-label">Volume</div>
                         <div class="stat-value" id="volume">0</div>
                     </div>
                     <div class="stock-stat">
-                        <div class="stat-label">市值</div>
+                        <div class="stat-label">Market Cap</div>
                         <div class="stat-value" id="marketCap">$0.00</div>
                     </div>
                     <div class="stock-stat">
-                        <div class="stat-label">更新时间</div>
+                        <div class="stat-label">Last Updated</div>
                         <div class="stat-value" id="lastUpdated">-</div>
                     </div>
                 </div>
@@ -105,12 +105,12 @@
                 <!-- Price Chart -->
                 <div class="chart-section">
                     <div class="chart-header">
-                        <h3>📈 价格走势</h3>
+                        <h3>📈 Price Trend</h3>
                         <div class="chart-controls">
-                            <button class="chart-btn active" onclick="changeRange('1mo', this)">1月</button>
-                            <button class="chart-btn" onclick="changeRange('3mo', this)">3月</button>
-                            <button class="chart-btn" onclick="changeRange('6mo', this)">6月</button>
-                            <button class="chart-btn" onclick="changeRange('1y', this)">1年</button>
+                            <button class="chart-btn active" onclick="changeRange('1mo', this)">1M</button>
+                            <button class="chart-btn" onclick="changeRange('3mo', this)">3M</button>
+                            <button class="chart-btn" onclick="changeRange('6mo', this)">6M</button>
+                            <button class="chart-btn" onclick="changeRange('1y', this)">1Y</button>
                         </div>
                     </div>
                     <div class="chart-wrapper">
@@ -121,17 +121,17 @@
                 <!-- Action Buttons -->
                 <div class="stock-actions">
                     <button class="btn btn-primary" onclick="showAddToPortfolio()">
-                        ➕ 添加到投资组合
+                        ➕ Add to Portfolio
                     </button>
                     <button class="btn btn-secondary" onclick="refreshStockInfo()">
-                        🔄 刷新数据
+                        🔄 Refresh Data
                     </button>
                 </div>
             </section>
 
             <!-- Search Results -->
             <section id="searchResults" class="search-results-section" style="display: none;">
-                <h3>搜索结果</h3>
+                <h3>Search Results</h3>
                 <div id="searchResultsList" class="search-results-list">
                 </div>
             </section>
@@ -142,33 +142,33 @@
     <div id="addToPortfolioModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeAddToPortfolioModal()">&times;</span>
-            <h2>添加到投资组合</h2>
+            <h2>Add to Portfolio</h2>
             <form id="addToPortfolioForm" onsubmit="addToPortfolio(event)">
                 <input type="hidden" id="addToPortfolioTicker">
                 <div class="form-group">
-                    <label for="addToPortfolioAssetType">资产类型:</label>
+                    <label for="addToPortfolioAssetType">Asset Type:</label>
                     <select id="addToPortfolioAssetType" required onchange="togglePriceInput()">
-                        <option value="STOCK">股票</option>
-                        <option value="BOND">债券</option>
-                        <option value="CASH">现金</option>
+                        <option value="STOCK">Stock</option>
+                        <option value="BOND">Bond</option>
+                        <option value="CASH">Cash</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="addToPortfolioVolume">持有数量:</label>
-                    <input type="number" id="addToPortfolioVolume" required min="1" placeholder="数量">
+                    <label for="addToPortfolioVolume">Volume:</label>
+                    <input type="number" id="addToPortfolioVolume" required min="1" placeholder="Volume">
                 </div>
                 <div class="form-group" id="priceInputGroup">
-                    <label for="addToPortfolioPrice">买入价格:</label>
-                    <input type="number" id="addToPortfolioPrice" step="0.0001" required min="0" placeholder="价格">
+                    <label for="addToPortfolioPrice">Purchase Price:</label>
+                    <input type="number" id="addToPortfolioPrice" step="0.0001" required min="0" placeholder="Price">
                 </div>
                 <div class="form-group" id="dateInputGroup">
-                    <label for="addToPortfolioDate">买入日期:</label>
+                    <label for="addToPortfolioDate">Purchase Date:</label>
                     <input type="date" id="addToPortfolioDate" required>
                 </div>
                 <div class="form-group info-text" id="buyInfo" style="display: none; color: #666; font-size: 12px;">
-                    注意：股票和债券将使用今日开盘价进行交易
+                    Note: Stocks and bonds will use today's opening price for trading
                 </div>
-                <button type="submit" class="btn btn-primary">添加</button>
+                <button type="submit" class="btn btn-primary">Add</button>
             </form>
         </div>
     </div>

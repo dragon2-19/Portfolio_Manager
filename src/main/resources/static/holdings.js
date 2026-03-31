@@ -37,7 +37,7 @@ async function loadHoldings() {
         updateStats(holdings);
     } catch (error) {
         console.error('Error loading holdings:', error);
-        alert('加载数据失败，请检查后端服务是否启动');
+        alert('Failed to load data, please check if the backend service is running');
     }
 }
 
@@ -58,7 +58,7 @@ function displayHoldings(holdings) {
     tbody.innerHTML = '';
 
     if (holdings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">No data</td></tr>';
         return;
     }
 
@@ -67,12 +67,12 @@ function displayHoldings(holdings) {
         const profitLossClass = holding.profitLoss > 0 ? 'profit-positive' :
                                holding.profitLoss < 0 ? 'profit-negative' : 'profit-neutral';
 
-        // 现金不显示某些操作
+        // Cash doesn't show certain operations
         const isCash = holding.assetType === 'CASH';
         const actions = isCash ?
-            `<button class="action-btn btn-price" onclick="openCashWithdrawModal()">提取</button>` :
-            `<button class="action-btn btn-sell" onclick="quickSell('${holding.ticker}')">卖出</button>
-             <button class="action-btn btn-delete" onclick="deleteHolding(${holding.id})">删除</button>`;
+            `<button class="action-btn btn-price" onclick="openCashWithdrawModal()">Withdraw</button>` :
+            `<button class="action-btn btn-sell" onclick="quickSell('${holding.ticker}')">Sell</button>
+             <button class="action-btn btn-delete" onclick="deleteHolding(${holding.id})">Delete</button>`;
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -113,7 +113,7 @@ async function loadCashBalance() {
     try {
         const response = await fetch(`${HOLDINGS_API}/cash/balance`);
         const balance = await response.json();
-        // 更新界面显示的现金余额（可以添加到页面）
+        // Update the cash balance displayed in the interface (can be added to the page)
         return balance;
     } catch (error) {
         console.error('Error loading cash balance:', error);
@@ -132,14 +132,14 @@ async function testConnection() {
         if (response.ok) {
             const holdings = await response.json();
             console.log('Connection successful! Holdings:', holdings);
-            alert('✅ 后端连接成功！\n\n当前持仓数量: ' + holdings.length);
+            alert('✅ Backend connection successful!\n\nCurrent holdings count: ' + holdings.length);
         } else {
             console.error('Connection failed with status:', response.status);
-            alert('❌ 后端连接失败！\n\n状态码: ' + response.status + '\n\n请确保后端服务已启动（端口8080）');
+            alert('❌ Backend connection failed!\n\nStatus code: ' + response.status + '\n\nPlease ensure the backend service is running (port 8080)');
         }
     } catch (error) {
         console.error('Connection error:', error);
-        alert('❌ 无法连接到后端服务！\n\n错误信息: ' + error.message + '\n\n请确保：\n1. 后端服务已启动（端口8080）\n2. 没有防火墙阻止连接\n3. 后端服务正常运行');
+        alert('❌ Unable to connect to backend service!\n\nError message: ' + error.message + '\n\nPlease ensure:\n1. Backend service is running (port 8080)\n2. No firewall blocking connection\n3. Backend service is running normally');
     }
 }
 
@@ -152,7 +152,7 @@ async function openCashDepositModal() {
         console.log('cashDepositModal opened successfully');
     } catch (error) {
         console.error('Error opening cashDepositModal:', error);
-        alert('打开充值窗口失败：' + error.message);
+        alert('Failed to open deposit window: ' + error.message);
     }
 }
 
@@ -167,7 +167,7 @@ async function openCashWithdrawModal() {
         console.log('cashWithdrawModal opened successfully');
     } catch (error) {
         console.error('Error opening cashWithdrawModal:', error);
-        alert('打开提取窗口失败：' + error.message);
+        alert('Failed to open withdraw window: ' + error.message);
     }
 }
 
@@ -190,15 +190,15 @@ async function depositCash(event) {
             closeCashDepositModal();
             loadHoldings();
             loadCashBalance();
-            alert('充值成功！');
+            alert('Deposit successful!');
         } else {
             const errorText = await response.text();
             console.error('Deposit failed:', errorText);
-            alert('充值失败：' + errorText);
+            alert('Deposit failed: ' + errorText);
         }
     } catch (error) {
         console.error('Error depositing cash:', error);
-        alert('充值失败，请检查网络连接');
+        alert('Deposit failed, please check network connection');
     }
 }
 
@@ -221,15 +221,15 @@ async function withdrawCash(event) {
             closeCashWithdrawModal();
             loadHoldings();
             loadCashBalance();
-            alert('提取成功！');
+            alert('Withdraw successful!');
         } else {
             const errorText = await response.text();
             console.error('Withdraw failed:', errorText);
-            alert('提取失败：' + errorText);
+            alert('Withdraw failed: ' + errorText);
         }
     } catch (error) {
         console.error('Error withdrawing cash:', error);
-        alert('提取失败，请检查网络连接');
+        alert('Withdraw failed, please check network connection');
     }
 }
 
@@ -237,7 +237,7 @@ async function withdrawCash(event) {
 function setupBuyModalListeners() {
     console.log('Setting up buy modal listeners');
     try {
-        // 监听股票代码输入，自动获取开盘价
+        // Listen to stock ticker input, auto-fetch opening price
         const tickerInput = document.getElementById('buyTicker');
         if (tickerInput) {
             tickerInput.addEventListener('input', async function() {
@@ -245,7 +245,7 @@ function setupBuyModalListeners() {
                 if (ticker.length === 6) {
                     try {
                         const volume = parseInt(document.getElementById('buyVolume').value) || 1;
-                        // 获取股票信息（包含开盘价）
+                        // Fetch stock information (including opening price)
                         const response = await fetch(`${STOCKS_API}/${ticker}`);
                         const stockInfo = await response.json();
                         document.getElementById('buyOpenPrice').value = stockInfo.open || 0;
@@ -256,7 +256,7 @@ function setupBuyModalListeners() {
                 }
             });
 
-            // 监听数量输入
+            // Listen to volume input
             const volumeInput = document.getElementById('buyVolume');
             if (volumeInput) {
                 volumeInput.addEventListener('input', updateBuyTotalAmount);
@@ -280,7 +280,7 @@ async function openBuyModal() {
         console.log('buyModal opened successfully');
     } catch (error) {
         console.error('Error opening buyModal:', error);
-        alert('打开买入窗口失败：' + error.message);
+        alert('Failed to open buy window: ' + error.message);
     }
 }
 
@@ -288,7 +288,7 @@ async function openBuyModal() {
 function updateBuyTotalAmount() {
     const price = parseFloat(document.getElementById('buyOpenPrice').value) || 0;
     const volume = parseInt(document.getElementById('buyVolume').value) || 0;
-    const total = price * volume * 1.0002; // 加上手续费 0.02%
+    const total = price * volume * 1.0002; // Add fee 0.02%
     document.getElementById('buyTotalAmount').textContent = formatCurrency(total);
 }
 
@@ -312,15 +312,15 @@ async function buyStock(event) {
             closeBuyModal();
             loadHoldings();
             loadCashBalance();
-            alert('买入成功！');
+            alert('Buy successful!');
         } else {
             const errorText = await response.text();
             console.error('Buy failed:', errorText);
-            alert('买入失败：' + errorText);
+            alert('Buy failed: ' + errorText);
         }
     } catch (error) {
         console.error('Error buying stock:', error);
-        alert('买入失败，请检查网络连接');
+        alert('Buy failed, please check network connection');
     }
 }
 
@@ -328,7 +328,7 @@ async function buyStock(event) {
 function setupSellModalListeners() {
     console.log('Setting up sell modal listeners');
     try {
-        // 监听股票代码输入
+        // Listen to stock ticker input
         const tickerInput = document.getElementById('sellTicker');
         if (tickerInput) {
             tickerInput.addEventListener('input', async function() {
@@ -346,7 +346,7 @@ function setupSellModalListeners() {
                 }
             });
 
-            // 监听数量输入
+            // Listen to volume input
             const volumeInput = document.getElementById('sellVolume');
             if (volumeInput) {
                 volumeInput.addEventListener('input', updateSellProfit);
@@ -370,7 +370,7 @@ async function openSellModal() {
         console.log('sellModal opened successfully');
     } catch (error) {
         console.error('Error opening sellModal:', error);
-        alert('打开卖出窗口失败：' + error.message);
+        alert('Failed to open sell window: ' + error.message);
     }
 }
 
@@ -378,7 +378,7 @@ async function openSellModal() {
 function updateSellProfit() {
     const price = parseFloat(document.getElementById('sellOpenPrice').value) || 0;
     const volume = parseInt(document.getElementById('sellVolume').value) || 0;
-    const sellAmount = price * volume * 0.9993; // 减去手续费 0.07%
+    const sellAmount = price * volume * 0.9993; // Deduct fee 0.07%
     document.getElementById('sellProfit').textContent = formatCurrency(sellAmount);
 }
 
@@ -402,15 +402,15 @@ async function sellStock(event) {
             closeSellModal();
             loadHoldings();
             loadCashBalance();
-            alert('卖出成功！');
+            alert('Sell successful!');
         } else {
             const errorText = await response.text();
             console.error('Sell failed:', errorText);
-            alert('卖出失败：' + errorText);
+            alert('Sell failed: ' + errorText);
         }
     } catch (error) {
         console.error('Error selling stock:', error);
-        alert('卖出失败，请检查网络连接');
+        alert('Sell failed, please check network connection');
     }
 }
 
@@ -422,7 +422,7 @@ function quickSell(ticker) {
 
 // Delete holding
 async function deleteHolding(id) {
-    if (!confirm('确定要删除该持仓吗？\n\n注意：删除持仓将同时删除该持仓的所有交易记录，此操作不可恢复！')) {
+    if (!confirm('Are you sure you want to delete this holding?\n\nNote: Deleting a holding will also delete all transaction records for this holding. This operation cannot be undone!')) {
         return;
     }
 
@@ -433,14 +433,14 @@ async function deleteHolding(id) {
 
         if (response.ok) {
             loadHoldings();
-            alert('✅ 删除成功！\n\n持仓及其相关交易记录已被删除');
+            alert('✅ Delete successful!\n\nHolding and its related transaction records have been deleted');
         } else {
             const errorText = await response.text();
-            alert('❌ 删除失败：' + errorText);
+            alert('❌ Delete failed: ' + errorText);
         }
     } catch (error) {
         console.error('Error deleting holding:', error);
-        alert('❌ 删除失败，请检查网络连接');
+        alert('❌ Delete failed, please check network connection');
     }
 }
 

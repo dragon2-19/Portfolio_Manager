@@ -20,29 +20,29 @@ async function searchStock() {
     const query = document.getElementById('searchInput').value.trim();
 
     if (!query) {
-        alert('请输入股票代码或名称');
+        alert('Please enter a stock ticker or name');
         return;
     }
 
     try {
-        // 先尝试搜索
+        // Try search first
         const searchResponse = await fetch(`${STOCKS_API}/search?query=${encodeURIComponent(query)}`);
         const searchResults = await searchResponse.json();
 
         if (searchResults && searchResults.length > 0) {
-            // 如果有搜索结果，显示第一个结果
+            // If there are search results, display the first one
             const ticker = searchResults[0].ticker;
             const response = await fetch(`${STOCKS_API}/${ticker}`);
             const stockInfo = await response.json();
 
             displayStockDetails(stockInfo);
 
-            // 如果有多个搜索结果，显示搜索结果列表
+            // If there are multiple search results, display the search results list
             if (searchResults.length > 1) {
                 displaySearchResults(searchResults);
             }
         } else {
-            // 如果没有搜索结果，直接查询股票代码
+            // If there are no search results, query the stock ticker directly
             const ticker = query.toUpperCase();
             const response = await fetch(`${STOCKS_API}/${ticker}`);
             const stockInfo = await response.json();
@@ -50,12 +50,12 @@ async function searchStock() {
             if (stockInfo && stockInfo.currentPrice > 0) {
                 displayStockDetails(stockInfo);
             } else {
-                alert('未找到匹配的股票，请检查输入');
+                alert('No matching stock found, please check your input');
             }
         }
     } catch (error) {
         console.error('Error searching stock:', error);
-        alert('搜索失败，请检查网络连接');
+        alert('Search failed, please check network connection');
     }
 }
 
@@ -136,7 +136,7 @@ function updatePriceChart(stockInfo) {
         data: {
             labels: labels,
             datasets: [{
-                label: stockInfo.ticker + ' 价格',
+                label: stockInfo.ticker + ' Price',
                 data: data,
                 borderColor: '#667eea',
                 backgroundColor: 'rgba(102, 126, 234, 0.1)',
@@ -161,7 +161,7 @@ function updatePriceChart(stockInfo) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return `价格: ${formatCurrency(context.raw)}`;
+                            return `Price: ${formatCurrency(context.raw)}`;
                         }
                     }
                 }
@@ -175,7 +175,7 @@ function updatePriceChart(stockInfo) {
                 y: {
                     ticks: {
                         callback: function(value) {
-                            return '¥' + value.toFixed(2);
+                            return '$' + value.toFixed(2);
                         }
                     }
                 }
@@ -209,7 +209,7 @@ async function changeRange(range, button) {
 // Show add to portfolio modal
 function showAddToPortfolio() {
     if (!currentStock) {
-        alert('请先搜索股票');
+        alert('Please search for a stock first');
         return;
     }
 
@@ -220,7 +220,7 @@ function showAddToPortfolio() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('addToPortfolioDate').value = today;
 
-    // 根据当前设置显示/隐藏输入框
+    // Show/hide input fields based on current settings
     togglePriceInput();
 
     document.getElementById('addToPortfolioModal').style.display = 'block';
@@ -234,12 +234,12 @@ function togglePriceInput() {
     const buyInfo = document.getElementById('buyInfo');
 
     if (assetType === 'CASH') {
-        // 现金需要显示价格和日期输入
+        // Cash needs price and date input
         priceInputGroup.style.display = 'block';
         dateInputGroup.style.display = 'block';
         buyInfo.style.display = 'none';
     } else {
-        // 股票和债券不需要显示价格和日期（使用今日开盘价）
+        // Stocks and bonds don't need price and date (use today's opening price)
         priceInputGroup.style.display = 'none';
         dateInputGroup.style.display = 'none';
         buyInfo.style.display = 'block';
@@ -254,11 +254,11 @@ async function addToPortfolio(event) {
     const assetType = document.getElementById('addToPortfolioAssetType').value;
     const volume = parseInt(document.getElementById('addToPortfolioVolume').value);
 
-    // 对于股票和债券，使用买入接口；对于现金，使用创建接口
+    // For stocks and bonds, use buy interface; for cash, use create interface
     if (assetType === 'CASH') {
         const holding = {
             ticker: 'CASH',
-            stockName: '现金',
+            stockName: 'Cash',
             assetType: 'CASH',
             volume: volume,
             purchasePrice: 1,
@@ -275,17 +275,17 @@ async function addToPortfolio(event) {
 
             if (response.ok) {
                 closeAddToPortfolioModal();
-                alert('成功添加现金到投资组合！');
+                alert('Successfully added cash to portfolio!');
             } else {
                 const errorText = await response.text();
-                alert('添加失败：' + errorText);
+                alert('Add failed: ' + errorText);
             }
         } catch (error) {
             console.error('Error adding to portfolio:', error);
-            alert('添加失败，请检查网络连接');
+            alert('Add failed, please check network connection');
         }
     } else {
-        // 对于股票和债券，使用买入接口
+        // For stocks and bonds, use buy interface
         try {
             const response = await fetch(`${HOLDINGS_API}/buy?ticker=${ticker}&volume=${volume}`, {
                 method: 'POST'
@@ -293,14 +293,14 @@ async function addToPortfolio(event) {
 
             if (response.ok) {
                 closeAddToPortfolioModal();
-                alert('成功添加到投资组合！');
+                alert('Successfully added to portfolio!');
             } else {
                 const errorText = await response.text();
-                alert('添加失败：' + errorText);
+                alert('Add failed: ' + errorText);
             }
         } catch (error) {
             console.error('Error buying stock:', error);
-            alert('添加失败，请检查网络连接');
+            alert('Add failed, please check network connection');
         }
     }
 }
@@ -309,7 +309,7 @@ async function addToPortfolio(event) {
 async function refreshStockInfo() {
     if (currentStock) {
         await searchStock();
-        alert('数据已刷新！');
+        alert('Data refreshed!');
     }
 }
 

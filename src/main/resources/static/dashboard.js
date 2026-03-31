@@ -61,7 +61,7 @@ async function loadHoldingsOverview() {
         grid.innerHTML = '';
 
         if (holdings.length === 0) {
-            grid.innerHTML = '<div class="empty-state">暂无持仓数据</div>';
+            grid.innerHTML = '<div class="empty-state">No holdings data</div>';
             return;
         }
 
@@ -91,19 +91,19 @@ function createHoldingCard(holding) {
         </div>
         <div class="holding-card-body">
             <div class="holding-stat">
-                <span class="stat-label">持有数量</span>
+                <span class="stat-label">Shares</span>
                 <span class="stat-value">${holding.volume}</span>
             </div>
             <div class="holding-stat">
-                <span class="stat-label">当前价格</span>
+                <span class="stat-label">Current Price</span>
                 <span class="stat-value">${formatCurrency(holding.currentPrice)}</span>
             </div>
             <div class="holding-stat">
-                <span class="stat-label">总市值</span>
+                <span class="stat-label">Total Value</span>
                 <span class="stat-value">${formatCurrency(holding.totalValue)}</span>
             </div>
             <div class="holding-stat">
-                <span class="stat-label">盈亏</span>
+                <span class="stat-label">P/L</span>
                 <span class="stat-value ${profitLossClass}">${formatCurrency(holding.profitLoss)}</span>
             </div>
         </div>
@@ -122,7 +122,7 @@ async function loadRecentTransactions() {
         list.innerHTML = '';
 
         if (transactions.length === 0) {
-            list.innerHTML = '<div class="empty-state">暂无最近交易</div>';
+            list.innerHTML = '<div class="empty-state">No recent transactions</div>';
             return;
         }
 
@@ -142,7 +142,7 @@ function createTransactionItem(transaction) {
 
     const typeClass = transaction.transactionType === 'BUY' ? 'transaction-buy' : 'transaction-sell';
     const typeIcon = transaction.transactionType === 'BUY' ? '📈' : '📉';
-    const typeText = transaction.transactionType === 'BUY' ? '买入' : '卖出';
+    const typeText = transaction.transactionType === 'BUY' ? 'Buy' : 'Sell';
 
     item.innerHTML = `
         <div class="transaction-icon ${typeClass}">
@@ -151,7 +151,7 @@ function createTransactionItem(transaction) {
         <div class="transaction-info">
             <div class="transaction-ticker">${transaction.holding?.ticker || 'N/A'}</div>
             <div class="transaction-details">
-                ${typeText} ${transaction.volume} 股 @ ${formatCurrency(transaction.price)}
+                ${typeText} ${transaction.volume} shares @ ${formatCurrency(transaction.price)}
             </div>
         </div>
         <div class="transaction-amount">
@@ -179,7 +179,7 @@ function updateAssetTypeChart(summary) {
     assetTypeChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['股票', '债券', '现金'],
+            labels: ['Stocks', 'Bonds', 'Cash'],
             datasets: [{
                 data: [summary.stockCount, summary.bondCount, summary.cashCount],
                 backgroundColor: ['#667eea', '#f093fb', '#43e97b'],

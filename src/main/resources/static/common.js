@@ -11,8 +11,8 @@ console.log('TRANSACTIONS_API:', TRANSACTIONS_API);
 
 // Format currency
 function formatCurrency(value) {
-    if (value === null || value === undefined || isNaN(value)) return '¥0.00';
-    return '¥' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    if (value === null || value === undefined || isNaN(value)) return '$0.00';
+    return '$' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }
 
 // Format percentage
@@ -27,7 +27,7 @@ function formatPercentage(value) {
 function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
@@ -38,7 +38,7 @@ function formatDate(dateStr) {
 function formatDateTime(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleString('zh-CN', {
+    return date.toLocaleString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -61,15 +61,15 @@ function getBadgeClass(assetType) {
     }
 }
 
-// Get asset type name in Chinese
+// Get asset type name in English
 function getAssetTypeName(assetType) {
     switch (assetType) {
         case 'STOCK':
-            return '股票';
+            return 'Stock';
         case 'BOND':
-            return '债券';
+            return 'Bond';
         case 'CASH':
-            return '现金';
+            return 'Cash';
         default:
             return assetType;
     }
@@ -79,9 +79,9 @@ function getAssetTypeName(assetType) {
 function getTransactionTypeBadge(type) {
     switch (type) {
         case 'BUY':
-            return '<span class="badge badge-buy">买入</span>';
+            return '<span class="badge badge-buy">Buy</span>';
         case 'SELL':
-            return '<span class="badge badge-sell">卖出</span>';
+            return '<span class="badge badge-sell">Sell</span>';
         default:
             return type;
     }

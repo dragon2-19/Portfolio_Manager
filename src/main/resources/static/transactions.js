@@ -21,7 +21,7 @@ function displayTransactions(transactions) {
     tbody.innerHTML = '';
 
     if (transactions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No data</td></tr>';
         return;
     }
 
@@ -32,27 +32,27 @@ function displayTransactions(transactions) {
             case 'BUY':
                 typeClass = 'transaction-buy';
                 typeIcon = '📈';
-                typeText = '买入';
+                typeText = 'Buy';
                 break;
             case 'SELL':
                 typeClass = 'transaction-sell';
                 typeIcon = '📉';
-                typeText = '卖出';
+                typeText = 'Sell';
                 break;
             case 'DEPOSIT':
                 typeClass = 'transaction-deposit';
                 typeIcon = '💰';
-                typeText = '充值';
+                typeText = 'Deposit';
                 break;
             case 'WITHDRAW':
                 typeClass = 'transaction-withdraw';
                 typeIcon = '💵';
-                typeText = '提取';
+                typeText = 'Withdraw';
                 break;
             default:
                 typeClass = '';
                 typeIcon = '📝';
-                typeText = '其他';
+                typeText = 'Other';
         }
 
         const profitLossClass = transaction.profitLoss > 0 ? 'profit-positive' :
@@ -71,7 +71,7 @@ function displayTransactions(transactions) {
             <td class="${profitLossClass}">${transaction.profitLoss ? formatCurrency(transaction.profitLoss) : '-'}</td>
             <td>${formatDateTime(transaction.transactionDate)}</td>
             <td>
-                <button class="action-btn btn-delete" onclick="deleteTransaction(${transaction.id})">删除</button>
+                <button class="action-btn btn-delete" onclick="deleteTransaction(${transaction.id})">Delete</button>
             </td>
         `;
         tbody.appendChild(row);
@@ -95,7 +95,7 @@ function updateTransactionStats(transactions) {
 
 // Delete transaction
 async function deleteTransaction(id) {
-    if (!confirm('确定要删除该交易记录吗？')) {
+    if (!confirm('Are you sure you want to delete this transaction record?')) {
         return;
     }
 
@@ -106,12 +106,12 @@ async function deleteTransaction(id) {
 
         if (response.ok) {
             loadTransactions();
-            alert('删除成功！');
+            alert('Delete successful!');
         } else {
-            alert('删除失败，请重试');
+            alert('Delete failed, please try again');
         }
     } catch (error) {
         console.error('Error deleting transaction:', error);
-        alert('删除失败，请检查网络连接');
+        alert('Delete failed, please check network connection');
     }
 }

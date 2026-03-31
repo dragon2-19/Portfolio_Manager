@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>投资组合 - 持仓详情</title>
+    <title>Portfolio - Holdings</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -12,27 +12,27 @@
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2>📊 投资组合</h2>
+                <h2>📊 Portfolio</h2>
             </div>
             <ul class="sidebar-menu">
                 <li>
                     <a href="dashboard.html" class="nav-link">
-                        <span>📈</span> 仪表板
+                        <span>📈</span> Dashboard
                     </a>
                 </li>
                 <li class="active">
                     <a href="holdings.html" class="nav-link">
-                        <span>💼</span> 持仓详情
+                        <span>💼</span> Holdings
                     </a>
                 </li>
                 <li>
                     <a href="transactions.html" class="nav-link">
-                        <span>📝</span> 交易记录
+                        <span>📝</span> Transactions
                     </a>
                 </li>
                 <li>
                     <a href="search.html" class="nav-link">
-                        <span>🔍</span> 股票搜索
+                        <span>🔍</span> Search
                     </a>
                 </li>
             </ul>
@@ -41,25 +41,25 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <h1>持仓详情</h1>
+                <h1>Holdings</h1>
                 <div class="header-actions">
                     <button class="btn btn-primary" onclick="testConnection()">
-                        🔌 测试连接
+                        🔌 Test Connection
                     </button>
                     <button class="btn btn-primary" onclick="openCashDepositModal()">
-                        💰 充值现金
+                        💰 Deposit Cash
                     </button>
                     <button class="btn btn-secondary" onclick="openCashWithdrawModal()">
-                        💵 提取现金
+                        💵 Withdraw Cash
                     </button>
                     <button class="btn btn-info" onclick="openBuyModal()">
-                        📈 买入股票/债券
+                        📈 Buy Stock/Bond
                     </button>
                     <button class="btn btn-warning" onclick="openSellModal()">
-                        📉 卖出股票/债券
+                        📉 Sell Stock/Bond
                     </button>
                     <button class="btn btn-secondary" onclick="loadHoldings()">
-                        🔄 刷新
+                        🔄 Refresh
                     </button>
                 </div>
             </header>
@@ -69,28 +69,28 @@
                 <div class="stat-card">
                     <div class="stat-icon">📊</div>
                     <div class="stat-info">
-                        <div class="stat-label">总持仓数</div>
+                        <div class="stat-label">Total Holdings</div>
                         <div class="stat-value" id="totalCount">0</div>
                     </div>
                 </div>
                 <div class="stat-card stock">
                     <div class="stat-icon">📈</div>
                     <div class="stat-info">
-                        <div class="stat-label">股票</div>
+                        <div class="stat-label">Stocks</div>
                         <div class="stat-value" id="stockCount">0</div>
                     </div>
                 </div>
                 <div class="stat-card bond">
                     <div class="stat-icon">💰</div>
                     <div class="stat-info">
-                        <div class="stat-label">债券</div>
+                        <div class="stat-label">Bonds</div>
                         <div class="stat-value" id="bondCount">0</div>
                     </div>
                 </div>
                 <div class="stat-card cash">
                     <div class="stat-icon">💵</div>
                     <div class="stat-info">
-                        <div class="stat-label">现金</div>
+                        <div class="stat-label">Cash</div>
                         <div class="stat-value" id="cashCount">0</div>
                     </div>
                 </div>
@@ -102,17 +102,17 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>股票代码</th>
-                            <th>股票名称</th>
-                            <th>资产类型</th>
-                            <th>持有数量</th>
-                            <th>平均成本</th>
-                            <th>当前价格</th>
-                            <th>总市值</th>
-                            <th>盈亏</th>
-                            <th>收益率</th>
-                            <th>买入日期</th>
-                            <th>操作</th>
+                            <th>Ticker</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Volume</th>
+                            <th>Avg Cost</th>
+                            <th>Current Price</th>
+                            <th>Total Value</th>
+                            <th>P/L</th>
+                            <th>Return %</th>
+                            <th>Purchase Date</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="holdingsTableBody">
@@ -126,13 +126,13 @@
     <div id="cashDepositModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCashDepositModal()">&times;</span>
-            <h2>充值现金</h2>
+            <h2>Deposit Cash</h2>
             <form id="cashDepositForm" onsubmit="depositCash(event)">
                 <div class="form-group">
-                    <label for="depositAmount">充值金额:</label>
-                    <input type="number" id="depositAmount" required min="0.01" step="0.01" placeholder="金额">
+                    <label for="depositAmount">Amount:</label>
+                    <input type="number" id="depositAmount" required min="0.01" step="0.01" placeholder="Amount">
                 </div>
-                <button type="submit" class="btn btn-primary">确认充值</button>
+                <button type="submit" class="btn btn-primary">Confirm Deposit</button>
             </form>
         </div>
     </div>
@@ -141,17 +141,17 @@
     <div id="cashWithdrawModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCashWithdrawModal()">&times;</span>
-            <h2>提取现金</h2>
+            <h2>Withdraw Cash</h2>
             <form id="cashWithdrawForm" onsubmit="withdrawCash(event)">
                 <div class="form-group">
-                    <label for="withdrawAmount">提取金额:</label>
-                    <input type="number" id="withdrawAmount" required min="0.01" step="0.01" placeholder="金额">
+                    <label for="withdrawAmount">Amount:</label>
+                    <input type="number" id="withdrawAmount" required min="0.01" step="0.01" placeholder="Amount">
                 </div>
                 <div class="form-group">
-                    <label>当前现金余额:</label>
-                    <div id="currentCashBalance">¥0.00</div>
+                    <label>Current Balance:</label>
+                    <div id="currentCashBalance">$0.00</div>
                 </div>
-                <button type="submit" class="btn btn-primary">确认提取</button>
+                <button type="submit" class="btn btn-primary">Confirm Withdraw</button>
             </form>
         </div>
     </div>
@@ -160,25 +160,25 @@
     <div id="buyModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeBuyModal()">&times;</span>
-            <h2>买入股票/债券</h2>
+            <h2>Buy Stock/Bond</h2>
             <form id="buyForm" onsubmit="buyStock(event)">
                 <div class="form-group">
-                    <label for="buyTicker">股票代码:</label>
-                    <input type="text" id="buyTicker" required placeholder="如: 600519">
+                    <label for="buyTicker">Ticker:</label>
+                    <input type="text" id="buyTicker" required placeholder="e.g., 600519">
                 </div>
                 <div class="form-group">
-                    <label for="buyVolume">数量:</label>
-                    <input type="number" id="buyVolume" required min="1" placeholder="数量">
+                    <label for="buyVolume">Volume:</label>
+                    <input type="number" id="buyVolume" required min="1" placeholder="Volume">
                 </div>
                 <div class="form-group">
-                    <label for="buyOpenPrice">今日开盘价:</label>
-                    <input type="number" id="buyOpenPrice" step="0.0001" readonly placeholder="自动获取">
+                    <label for="buyOpenPrice">Today's Open Price:</label>
+                    <input type="number" id="buyOpenPrice" step="0.0001" readonly placeholder="Auto-fetch">
                 </div>
                 <div class="form-group">
-                    <label>预计总金额:</label>
-                    <div id="buyTotalAmount">¥0.00</div>
+                    <label>Estimated Total:</label>
+                    <div id="buyTotalAmount">$0.00</div>
                 </div>
-                <button type="submit" class="btn btn-primary">确认买入</button>
+                <button type="submit" class="btn btn-primary">Confirm Buy</button>
             </form>
         </div>
     </div>
@@ -187,25 +187,25 @@
     <div id="sellModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSellModal()">&times;</span>
-            <h2>卖出股票/债券</h2>
+            <h2>Sell Stock/Bond</h2>
             <form id="sellForm" onsubmit="sellStock(event)">
                 <div class="form-group">
-                    <label for="sellTicker">股票代码:</label>
-                    <input type="text" id="sellTicker" required placeholder="如: 600519">
+                    <label for="sellTicker">Ticker:</label>
+                    <input type="text" id="sellTicker" required placeholder="e.g., 600519">
                 </div>
                 <div class="form-group">
-                    <label for="sellVolume">数量:</label>
-                    <input type="number" id="sellVolume" required min="1" placeholder="数量">
+                    <label for="sellVolume">Volume:</label>
+                    <input type="number" id="sellVolume" required min="1" placeholder="Volume">
                 </div>
                 <div class="form-group">
-                    <label for="sellOpenPrice">今日开盘价:</label>
-                    <input type="number" id="sellOpenPrice" step="0.0001" readonly placeholder="自动获取">
+                    <label for="sellOpenPrice">Today's Open Price:</label>
+                    <input type="number" id="sellOpenPrice" step="0.0001" readonly placeholder="Auto-fetch">
                 </div>
                 <div class="form-group">
-                    <label>预计收益:</label>
-                    <div id="sellProfit">¥0.00</div>
+                    <label>Estimated Profit:</label>
+                    <div id="sellProfit">$0.00</div>
                 </div>
-                <button type="submit" class="btn btn-primary">确认卖出</button>
+                <button type="submit" class="btn btn-primary">Confirm Sell</button>
             </form>
         </div>
     </div>
