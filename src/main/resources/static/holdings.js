@@ -291,6 +291,11 @@ function setupBuyModalListeners() {
         if (volumeInput) {
             volumeInput.addEventListener('input', updateBuyTotal);
         }
+        // Listen to price input (user can edit the price after auto-fetch)
+        const priceInput = document.getElementById('buyOpenPrice');
+        if (priceInput) {
+            priceInput.addEventListener('input', updateBuyTotal);
+        }
         console.log('Buy modal listeners setup complete');
     } catch (error) {
         console.error('Error setting up buy modal listeners:', error);
@@ -314,8 +319,9 @@ async function openBuyModal() {
 // Update buy total amount
 function updateBuyTotal() {
     const price = parseFloat(document.getElementById('buyOpenPrice').value) || 0;
-    const volume = parseInt(document.getElementById('buyVolume').value) || 0;
-    const total = price * volume * 1.0002; // Add fee 0.02%
+    const lots = parseInt(document.getElementById('buyVolume').value) || 0;
+    const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
+    const total = price * shares * 1.0002; // Add fee 0.02%
     document.getElementById('buyTotalAmount').textContent = formatCurrency(total);
 }
 
@@ -325,12 +331,13 @@ async function buyStock(event) {
     console.log('buyStock called');
 
     const ticker = document.getElementById('buyTicker').value.trim();
-    const volume = parseInt(document.getElementById('buyVolume').value);
+    const lots = parseInt(document.getElementById('buyVolume').value);
+    const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
     const purchaseDate = document.getElementById('buyDate').value || '';
-    console.log('Buy ticker:', ticker, 'volume:', volume, 'date:', purchaseDate);
+    console.log('Buy ticker:', ticker, 'lots:', lots, 'shares:', shares, 'date:', purchaseDate);
 
     try {
-        let url = `${HOLDINGS_API}/buy?ticker=${encodeURIComponent(ticker)}&volume=${volume}`;
+        let url = `${HOLDINGS_API}/buy?ticker=${encodeURIComponent(ticker)}&volume=${shares}`;
         if (purchaseDate) {
             url += `&purchaseDate=${encodeURIComponent(purchaseDate)}`;
         }
@@ -411,6 +418,11 @@ function setupSellModalListeners() {
         if (volumeInput) {
             volumeInput.addEventListener('input', updateSellProfit);
         }
+        // Listen to price input (user can edit the price after auto-fetch)
+        const priceInput = document.getElementById('sellOpenPrice');
+        if (priceInput) {
+            priceInput.addEventListener('input', updateSellProfit);
+        }
         console.log('Sell modal listeners setup complete');
     } catch (error) {
         console.error('Error setting up sell modal listeners:', error);
@@ -434,8 +446,9 @@ async function openSellModal() {
 // Update sell profit
 function updateSellProfit() {
     const price = parseFloat(document.getElementById('sellOpenPrice').value) || 0;
-    const volume = parseInt(document.getElementById('sellVolume').value) || 0;
-    const sellAmount = price * volume * 0.9993; // Deduct fee 0.07%
+    const lots = parseInt(document.getElementById('sellVolume').value) || 0;
+    const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
+    const sellAmount = price * shares * 0.9993; // Deduct fee 0.07%
     document.getElementById('sellProfit').textContent = formatCurrency(sellAmount);
 }
 
@@ -445,12 +458,13 @@ async function sellStock(event) {
     console.log('sellStock called');
 
     const ticker = document.getElementById('sellTicker').value.trim();
-    const volume = parseInt(document.getElementById('sellVolume').value);
+    const lots = parseInt(document.getElementById('sellVolume').value);
+    const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
     const sellDate = document.getElementById('sellDate').value || '';
-    console.log('Sell ticker:', ticker, 'volume:', volume, 'date:', sellDate);
+    console.log('Sell ticker:', ticker, 'lots:', lots, 'shares:', shares, 'date:', sellDate);
 
     try {
-        let url = `${HOLDINGS_API}/sell?ticker=${encodeURIComponent(ticker)}&volume=${volume}`;
+        let url = `${HOLDINGS_API}/sell?ticker=${encodeURIComponent(ticker)}&volume=${shares}`;
         if (sellDate) {
             url += `&sellDate=${encodeURIComponent(sellDate)}`;
         }

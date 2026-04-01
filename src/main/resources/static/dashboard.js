@@ -37,9 +37,9 @@ async function loadSummary() {
         const profitLossValue = parseFloat(summary.totalProfitLoss);
 
         if (profitLossValue > 0) {
-            profitLossElement.style.color = '#4caf50';
+            profitLossElement.style.color = '#f44336'; // Red for profit (Chinese market)
         } else if (profitLossValue < 0) {
-            profitLossElement.style.color = '#f44336';
+            profitLossElement.style.color = '#4caf50'; // Green for loss (Chinese market)
         } else {
             profitLossElement.style.color = 'white';
         }

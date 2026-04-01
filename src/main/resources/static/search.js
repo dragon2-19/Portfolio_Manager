@@ -285,7 +285,7 @@ function updatePriceChart(stockInfo) {
     const firstPrice = data[0];
     const lastPrice = data[data.length - 1];
     const isUp = lastPrice >= firstPrice;
-    
+
     // Red for up, green for down
     const lineColor = '#2196F3'; // Blue line
     const bgColor = isUp ? 'rgba(244, 67, 54, 0.15)' : 'rgba(76, 175, 80, 0.15)';
@@ -382,8 +382,8 @@ function updateTodayVolume(stockInfo) {
     const maxExpectedVolume = 100000000;
     const percentage = Math.min((volume / maxExpectedVolume) * 100, 100);
 
-    // Set bar color based on price change
-    const barColor = stockInfo.change >= 0 ? '#4caf50' : '#ef5350';
+    // Set bar color based on price change - red for up, green for down (Chinese stock market)
+    const barColor = stockInfo.change >= 0 ? '#f44336' : '#4caf50';
     volumeBar.style.width = percentage + '%';
     volumeBar.style.background = `linear-gradient(90deg, ${barColor}40 0%, ${barColor} 100%)`;
 }
@@ -459,7 +459,8 @@ async function addToPortfolio(event) {
 
     const ticker = document.getElementById('addToPortfolioTicker').value;
     const assetType = document.getElementById('addToPortfolioAssetType').value;
-    const volume = parseInt(document.getElementById('addToPortfolioVolume').value);
+    const lots = parseInt(document.getElementById('addToPortfolioVolume').value);
+    const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
 
     // For stocks and bonds, use buy interface; for cash, use create interface
     if (assetType === 'CASH') {
@@ -496,7 +497,7 @@ async function addToPortfolio(event) {
         const purchaseDate = document.getElementById('addToPortfolioStockDate').value || '';
 
         try {
-            let url = `${HOLDINGS_API}/buy?ticker=${encodeURIComponent(ticker)}&volume=${volume}`;
+            let url = `${HOLDINGS_API}/buy?ticker=${encodeURIComponent(ticker)}&volume=${shares}`;
             if (purchaseDate) {
                 url += `&purchaseDate=${encodeURIComponent(purchaseDate)}`;
             }
