@@ -536,3 +536,313 @@ function closeAddToPortfolioModal() {
 window.handleKeyPress = handleKeyPress;
 window.handleSearchInput = handleSearchInput;
 window.showMarketOverview = showMarketOverview;
+
+// ==================== Stock Analysis Functions ====================
+
+// Get API configuration from localStorage
+function getApiConfig() {
+    const savedConfig = localStorage.getItem('deepseekApiConfig');
+    if (savedConfig) {
+        return JSON.parse(savedConfig);
+    }
+    return null;
+}
+
+// Call DeepSeek API with streaming
+async function callDeepSeekAPI(prompt, onChunk, onComplete, onError) {
+    const apiConfig = getApiConfig();
+
+    if (!apiConfig || !apiConfig.apiKey) {
+        throw new Error('Please configure your API key first in AI Assistant page');
+    }
+
+    const url = `${apiConfig.baseUrl}/chat/completions`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiConfig.apiKey}`
+        },
+        body: JSON.stringify({
+            model: apiConfig.model || 'deepseek-chat',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are an expert financial analyst. Provide comprehensive stock analysis including fundamental and technical analysis. Be specific, data-driven, and actionable. Use markdown formatting with headers (#), bold (**text**), lists (- or *), and bullet points. Keep responses under 800 words.`
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: apiConfig.temperature || 0.7,
+            max_tokens: 1200,
+            stream: true
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
+    }
+
+    // Process streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+            if (onComplete) onComplete(fullContent);
+            break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+
+                if (data === '[DONE]') {
+                    if (onComplete) onComplete(fullContent);
+                    return;
+                }
+
+                try {
+                    const json = JSON.parse(data);
+                    const content = json.choices?.[0]?.delta?.content;
+
+                    if (content) {
+                        fullContent += content;
+                        if (onChunk) onChunk(fullContent);
+                    }
+                } catch (e) {
+                    // Ignore parsing errors for keep-alive messages
+                }
+            }
+        }
+    }
+}
+
+// Get Stock Analysis
+async function getStockAnalysis() {
+    if (!currentStock) {
+        alert('Please search for a stock first');
+        return;
+    }
+
+    // Prepare stock data for analysis
+    let stockData = `=== Stock Information ===\n\n`;
+    stockData += `Ticker: ${currentStock.ticker}\n`;
+    stockData += `Name: ${currentStock.name || 'N/A'}\n`;
+    stockData += `Current Price: ${formatCurrency(currentStock.currentPrice)}\n`;
+    stockData += `Daily Change: ${formatCurrency(Math.abs(currentStock.change))} (${Math.abs(currentStock.changePercent || 0).toFixed(2)}%)\n`;
+    stockData += `Direction: ${currentStock.change > 0 ? 'Up' : currentStock.change < 0 ? 'Down' : 'Flat'}\n`;
+    stockData += `Open: ${formatCurrency(currentStock.open)}\n`;
+    stockData += `High: ${formatCurrency(currentStock.high)}\n`;
+    stockData += `Low: ${formatCurrency(currentStock.low)}\n`;
+    stockData += `Volume: ${formatNumber(currentStock.volume)}\n`;
+    stockData += `Market Cap: ${formatCurrency(currentStock.marketCap)}\n`;
+    stockData += `Last Updated: ${formatDateTime(currentStock.lastUpdated)}\n\n`;
+
+    // Add price history if available
+    if (currentStock.priceHistory && currentStock.priceHistory.length > 0) {
+        stockData += `=== Price History ===\n\n`;
+        const recentHistory = currentStock.priceHistory.slice(-10);
+        recentHistory.forEach(point => {
+            stockData += `${point.date}: ${formatCurrency(point.price)}\n`;
+        });
+        stockData += '\n';
+    }
+
+    // Show modal and start streaming
+    document.getElementById('stockAnalysisModalTitle').textContent = `📊 Stock Analysis - ${currentStock.ticker}`;
+    document.getElementById('stockAnalysisModalStatus').innerHTML = `
+        <div class="ai-loading">
+            <div class="loading-spinner"></div>
+            <span>Analyzing...</span>
+        </div>
+    `;
+    document.getElementById('stockAnalysisModalBody').innerHTML = '<div class="ai-content" id="stockAnalysisStreamingContent"></div>';
+    document.getElementById('stockAnalysisModal').style.display = 'block';
+
+    const prompt = `Please provide a comprehensive stock analysis for:
+
+${stockData}
+
+Please cover:
+1. **Company Overview**: Business model and key information
+2. **Fundamental Analysis**: Financial health, valuation metrics, P/E ratio interpretation
+3. **Technical Analysis**: Recent price trends, key support/resistance levels, momentum indicators
+4. **Risk Factors**: Main risks to consider
+5. **Investment Verdict**: Buy/Hold/Sell recommendation with reasoning (1-10 score)
+6. **Price Targets**: Short-term and long-term price projections
+7. **Actionable Advice**: Specific recommendations for investors
+
+Be concise but thorough. Use markdown formatting with headers, bold text for key points, and bullet points for lists.`;
+
+    try {
+        await callDeepSeekAPI(
+            prompt,
+            (content) => {
+                // On chunk - update content
+                const streamingContent = document.getElementById('stockAnalysisStreamingContent');
+                if (streamingContent) {
+                    streamingContent.innerHTML = formatMarkdown(content);
+                    document.getElementById('stockAnalysisModalBody').scrollTop = document.getElementById('stockAnalysisModalBody').scrollHeight;
+                }
+            },
+            (finalContent) => {
+                // On complete - hide loading
+                document.getElementById('stockAnalysisModalStatus').innerHTML = '';
+            },
+            (error) => {
+                // On error
+                console.error('Error getting stock analysis:', error);
+                document.getElementById('stockAnalysisModalStatus').innerHTML = `
+                    <div class="ai-error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        );
+    } catch (error) {
+        console.error('Error getting stock analysis:', error);
+        document.getElementById('stockAnalysisModalStatus').innerHTML = `
+            <div class="ai-error">
+                ❌ Error: ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Format markdown to HTML
+function formatMarkdown(text) {
+    if (!text) return '';
+
+    // Escape HTML first
+    let lines = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .split('\n');
+
+    let html = '';
+    let inList = false;
+    let listType = '';
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+
+        // Code blocks
+        if (line.startsWith('```')) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            html += '<pre class="ai-code-block"><code>' + line.slice(3) + '</code></pre>';
+            continue;
+        }
+
+        // Headers
+        const headerMatch = line.match(/^(#{1,3})\s+(.*)$/);
+        if (headerMatch) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            const level = headerMatch[1].length;
+            const content = headerMatch[2];
+            if (level === 3) {
+                html += '<h3 class="ai-h3">' + content + '</h3>';
+            } else if (level === 2) {
+                html += '<h2 class="ai-h2">' + content + '</h2>';
+            } else {
+                html += '<h1 class="ai-h1">' + content + '</h1>';
+            }
+            continue;
+        }
+
+        // Horizontal rule
+        if (line.match(/^(\-{3,}|\*{3,})$/)) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            html += '<hr class="ai-hr">';
+            continue;
+        }
+
+        // Empty lines
+        if (!line.trim()) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            continue;
+        }
+
+        // Bold (**text**)
+        line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="ai-bold">$1</strong>');
+
+        // Italic (*text*) - only if not part of bold
+        line = line.replace(/\*([^*]+)\*/g, '<em class="ai-italic">$1</em>');
+
+        // Inline code (`code`)
+        line = line.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+
+        // Numbered list (1. item)
+        const numberedMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        if (numberedMatch) {
+            if (!inList || listType !== 'numbered') {
+                if (inList) html += '</ul>';
+                html += '<ol class="ai-list-numbered">';
+                inList = true;
+                listType = 'numbered';
+            }
+            html += '<li>' + numberedMatch[2] + '</li>';
+            continue;
+        }
+
+        // Bullet list (- item or * item)
+        const bulletMatch = line.match(/^[-*]\s+(.*)$/);
+        if (bulletMatch) {
+            if (!inList || listType !== 'bullet') {
+                if (inList) html += '</ul>';
+                html += '<ul class="ai-list-bullet">';
+                inList = true;
+                listType = 'bullet';
+            }
+            html += '<li>' + bulletMatch[1] + '</li>';
+            continue;
+        }
+
+        // Regular paragraph
+        if (inList) {
+            html += '</ul>';
+            inList = false;
+        }
+
+        html += '<p class="ai-paragraph">' + line + '</p>';
+    }
+
+    // Close any open list
+    if (inList) {
+        html += '</ul>';
+    }
+
+    return html;
+}
+
+// Close Stock Analysis Modal
+function closeStockAnalysisModal() {
+    document.getElementById('stockAnalysisModal').style.display = 'none';
+}
+
+// Export additional functions to window
+window.getStockAnalysis = getStockAnalysis;
+window.closeStockAnalysisModal = closeStockAnalysisModal;

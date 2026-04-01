@@ -147,6 +147,9 @@
                     <button class="btn btn-primary" onclick="showAddToPortfolio()">
                         ➕ Add to Portfolio
                     </button>
+                    <button class="btn btn-secondary" onclick="getStockAnalysis()">
+                        📊 Stock Analysis
+                    </button>
                     <button class="btn btn-secondary" onclick="refreshStockInfo()">
                         🔄 Refresh Data
                     </button>
@@ -224,6 +227,23 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Add</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Stock Analysis Modal -->
+    <div id="stockAnalysisModal" class="modal">
+        <div class="modal-content ai-analysis-modal">
+            <span class="close" onclick="closeStockAnalysisModal()">&times;</span>
+            <div class="ai-modal-header">
+                <h2 id="stockAnalysisModalTitle">📊 Stock Analysis</h2>
+                <div class="ai-modal-status" id="stockAnalysisModalStatus"></div>
+            </div>
+            <div class="ai-modal-body" id="stockAnalysisModalBody">
+                <!-- Analysis content will be inserted here -->
+            </div>
+            <div class="ai-modal-footer">
+                <button class="btn btn-secondary" onclick="closeStockAnalysisModal()">Close</button>
+            </div>
         </div>
     </div>
 

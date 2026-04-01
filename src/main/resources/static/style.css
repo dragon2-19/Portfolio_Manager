@@ -855,6 +855,215 @@ tbody tr:hover {
     color: #333;
 }
 
+/* ==================== AI Analysis Modal ==================== */
+.ai-analysis-modal {
+    max-width: 800px;
+    width: 95%;
+}
+
+.ai-modal-header {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-modal-header h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.ai-modal-status {
+    flex-shrink: 0;
+}
+
+.ai-modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.ai-modal-footer {
+    border-top: 2px solid #f0f0f0;
+    padding-top: 20px;
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* AI Loading Animation */
+.ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 40px;
+    color: #666;
+    font-size: 1.1em;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* AI Error */
+.ai-error {
+    background: #ffebee;
+    color: #c62828;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #ef5350;
+    text-align: center;
+}
+
+/* AI Content Styling */
+.ai-content {
+    line-height: 1.7;
+    color: #333;
+}
+
+.ai-paragraph {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* Headers */
+.ai-h1 {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #667eea;
+    margin: 25px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+.ai-h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #764ba2;
+    margin: 20px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.ai-h3 {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #333;
+    margin: 18px 0 10px 0;
+}
+
+/* Text formatting */
+.ai-bold {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.ai-italic {
+    color: #666;
+    font-style: italic;
+}
+
+/* Lists */
+.ai-list-numbered {
+    list-style-type: decimal;
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.ai-list-numbered li {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.ai-list-bullet {
+    list-style-type: disc;
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.ai-list-bullet li {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.ai-list-bullet li::marker {
+    color: #667eea;
+}
+
+/* Code blocks */
+.ai-code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 15px 0;
+}
+
+.ai-code-block code {
+    background: none;
+    padding: 0;
+    color: inherit;
+}
+
+.ai-inline-code {
+    background: #f0f0f0;
+    color: #e91e63;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* Horizontal rule */
+.ai-hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #667eea 50%, transparent 100%);
+    margin: 25px 0;
+}
+
+/* Line breaks */
+.ai-br {
+    display: block;
+    height: 0.5em;
+}
+
+/* Custom scrollbar for AI modal */
+.ai-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ai-modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.ai-modal-body::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+.ai-modal-body::-webkit-scrollbar-thumb:hover {
+    background: #5568d3;
+}
+
 .form-group {
     margin-bottom: 20px;
 }

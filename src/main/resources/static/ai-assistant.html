@@ -69,7 +69,7 @@
                             <li>Learn about financial concepts and strategies</li>
                             <li>Use the preset templates below for quick queries</li>
                         </ul>
-                        <p class="note">Please configure your DeepSeek API key to get started.</p>
+                        <p class="note">Please configure your API key to get started.</p>
                     </div>
                 </div>
 
@@ -94,35 +94,30 @@
             <section class="prompt-templates">
                 <h3>💡 Quick Prompt Templates</h3>
                 <div class="templates-grid">
-                    <div class="template-card" onclick="useTemplate('analysis')">
-                        <div class="template-icon">📊</div>
-                        <div class="template-title">Stock Analysis</div>
-                        <div class="template-desc">Analyze a stock's fundamentals and technical indicators</div>
-                    </div>
                     <div class="template-card" onclick="useTemplate('portfolio')">
                         <div class="template-icon">💼</div>
                         <div class="template-title">Portfolio Review</div>
-                        <div class="template-desc">Get portfolio diversification and risk assessment</div>
-                    </div>
-                    <div class="template-card" onclick="useTemplate('market')">
-                        <div class="template-icon">📈</div>
-                        <div class="template-title">Market Trends</div>
-                        <div class="template-desc">Current market trends and sector analysis</div>
+                        <div class="template-desc">Comprehensive portfolio evaluation with your holdings data</div>
                     </div>
                     <div class="template-card" onclick="useTemplate('risk')">
                         <div class="template-icon">⚠️</div>
                         <div class="template-title">Risk Management</div>
-                        <div class="template-desc">Risk assessment and mitigation strategies</div>
+                        <div class="template-desc">Risk assessment using your portfolio data</div>
                     </div>
                     <div class="template-card" onclick="useTemplate('strategy')">
                         <div class="template-icon">🎯</div>
                         <div class="template-title">Investment Strategy</div>
-                        <div class="template-desc">Personalized investment strategy suggestions</div>
+                        <div class="template-desc">Personalized strategy based on your holdings</div>
                     </div>
-                    <div class="template-card" onclick="useTemplate('education')">
-                        <div class="template-icon">📚</div>
-                        <div class="template-title">Financial Education</div>
-                        <div class="template-desc">Learn about financial concepts and terms</div>
+                    <div class="template-card" onclick="useTemplate('market')">
+                        <div class="template-icon">📈</div>
+                        <div class="template-title">Market Trends</div>
+                        <div class="template-desc">Market analysis with real-time index data</div>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('analysis')">
+                        <div class="template-icon">📊</div>
+                        <div class="template-title">Stock Analysis</div>
+                        <div class="template-desc">Deep dive into any stock's fundamentals</div>
                     </div>
                 </div>
             </section>
@@ -133,12 +128,23 @@
     <div id="apiConfigModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeApiConfigModal()">&times;</span>
-            <h2>⚙️ DeepSeek API Configuration</h2>
+            <h2>⚙️ API Configuration</h2>
             <form id="apiConfigForm" onsubmit="saveApiConfig(event)">
                 <div class="form-group">
+                    <label for="provider">Provider:</label>
+                    <select id="provider" required onchange="updateModelOptions()">
+                        <option value="deepseek">DeepSeek</option>
+                        <option value="qwen">Qwen (通义千问)</option>
+                        <option value="kimi">Kimi (月之暗面)</option>
+                        <option value="chatgpt">ChatGPT (OpenAI)</option>
+                        <option value="doubao">Doubao (豆包)</option>
+                        <option value="chatglm">ChatGLM (智谱)</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="apiKey">API Key:</label>
-                    <input type="password" id="apiKey" required placeholder="Enter your DeepSeek API key">
-                    <small class="info-text">Get your API key from <a href="https://platform.deepseek.com/" target="_blank">DeepSeek Platform</a></small>
+                    <input type="password" id="apiKey" required placeholder="Enter your API key">
+                    <small class="info-text" id="apiKeyHint">Get your API key from <a href="https://platform.deepseek.com/" target="_blank">DeepSeek Platform</a></small>
                 </div>
                 <div class="form-group">
                     <label for="model">Model:</label>
@@ -146,6 +152,11 @@
                         <option value="deepseek-chat">DeepSeek Chat (default)</option>
                         <option value="deepseek-coder">DeepSeek Coder</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="baseUrl">Base URL:</label>
+                    <input type="url" id="baseUrl" required placeholder="API base URL">
+                    <small class="info-text">API endpoint URL (auto-filled based on provider)</small>
                 </div>
                 <div class="form-group">
                     <label for="temperature">Temperature (0-2):</label>

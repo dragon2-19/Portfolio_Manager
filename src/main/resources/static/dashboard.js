@@ -257,3 +257,435 @@ async function updatePortfolioDistributionChart(summary) {
         console.error('Error updating portfolio chart:', error);
     }
 }
+
+// ==================== AI Analysis Functions ====================
+
+// Get API configuration from localStorage
+function getApiConfig() {
+    const savedConfig = localStorage.getItem('deepseekApiConfig');
+    if (savedConfig) {
+        return JSON.parse(savedConfig);
+    }
+    return null;
+}
+
+// Fetch portfolio data for AI analysis
+async function fetchPortfolioData() {
+    try {
+        const response = await fetch(HOLDINGS_API);
+        const holdings = await response.json();
+        
+        if (holdings.length === 0) {
+            return null;
+        }
+        
+        let portfolioText = "=== Portfolio Summary ===\n\n";
+        portfolioText += `Total Holdings: ${holdings.length}\n\n`;
+        
+        // Group by asset type
+        const stocks = holdings.filter(h => h.assetType === 'STOCK');
+        const bonds = holdings.filter(h => h.assetType === 'BOND');
+        const cash = holdings.filter(h => h.assetType === 'CASH');
+        
+        portfolioText += `Stocks: ${stocks.length}\n`;
+        portfolioText += `Bonds: ${bonds.length}\n`;
+        portfolioText += `Cash: ${cash.length}\n\n`;
+        
+        portfolioText += "=== Holdings Detail ===\n\n";
+        
+        holdings.forEach(holding => {
+            const totalValue = holding.totalValue || 0;
+            const profitLoss = holding.profitLoss || 0;
+            const returnPercent = holding.returnPercentage || 0;
+            
+            portfolioText += `${holding.ticker} | ${holding.assetType} | ${holding.volume} shares | `;
+            portfolioText += `Cost: ${formatCurrency(holding.purchasePrice)} | `;
+            portfolioText += `Value: ${formatCurrency(totalValue)} | `;
+            portfolioText += `P/L: ${formatCurrency(profitLoss)} (${returnPercent.toFixed(2)}%)\n`;
+        });
+        
+        // Calculate total value
+        const totalPortfolioValue = holdings.reduce((sum, h) => sum + (h.totalValue || 0), 0);
+        const totalProfitLoss = holdings.reduce((sum, h) => sum + (h.profitLoss || 0), 0);
+        
+        portfolioText += "\n=== Portfolio Totals ===\n";
+        portfolioText += `Total Value: ${formatCurrency(totalPortfolioValue)}\n`;
+        portfolioText += `Total P/L: ${formatCurrency(totalProfitLoss)}\n`;
+        
+        // Calculate allocation by type
+        if (totalPortfolioValue > 0) {
+            const stockAllocation = (stocks.reduce((sum, h) => sum + (h.totalValue || 0), 0) / totalPortfolioValue * 100).toFixed(1);
+            const bondAllocation = (bonds.reduce((sum, h) => sum + (h.totalValue || 0), 0) / totalPortfolioValue * 100).toFixed(1);
+            const cashAllocation = (cash.reduce((sum, h) => sum + (h.totalValue || 0), 0) / totalPortfolioValue * 100).toFixed(1);
+            
+            portfolioText += `\n=== Asset Allocation ===\n`;
+            portfolioText += `Stocks: ${stockAllocation}% | Bonds: ${bondAllocation}% | Cash: ${cashAllocation}%\n`;
+        }
+        
+        return portfolioText;
+        
+    } catch (error) {
+        console.error('Error fetching portfolio data:', error);
+        return null;
+    }
+}
+
+// Call DeepSeek API with streaming
+async function callDeepSeekAPI(prompt, onChunk, onComplete, onError) {
+    const apiConfig = getApiConfig();
+    
+    if (!apiConfig || !apiConfig.apiKey) {
+        throw new Error('Please configure your API key first in AI Assistant page');
+    }
+    
+    const url = `${apiConfig.baseUrl}/chat/completions`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiConfig.apiKey}`
+        },
+        body: JSON.stringify({
+            model: apiConfig.model || 'deepseek-chat',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are an expert financial advisor. Provide concise, actionable insights. Use bullet points, bold text for key points, and keep responses under 500 words. Focus on the most important insights.`
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: apiConfig.temperature || 0.7,
+            max_tokens: 800,
+            stream: true
+        })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
+    }
+    
+    // Process streaming response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+    
+    while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+            if (onComplete) onComplete(fullContent);
+            break;
+        }
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                
+                if (data === '[DONE]') {
+                    if (onComplete) onComplete(fullContent);
+                    return;
+                }
+                
+                try {
+                    const json = JSON.parse(data);
+                    const content = json.choices?.[0]?.delta?.content;
+                    
+                    if (content) {
+                        fullContent += content;
+                        if (onChunk) onChunk(fullContent);
+                    }
+                } catch (e) {
+                    // Ignore parsing errors for keep-alive messages
+                }
+            }
+        }
+    }
+}
+
+// Show loading state in AI modal
+function showAiLoading(title) {
+    document.getElementById('aiModalTitle').textContent = title;
+    document.getElementById('aiModalStatus').innerHTML = `
+        <div class="ai-loading">
+            <div class="loading-spinner"></div>
+            <span>Analyzing...</span>
+        </div>
+    `;
+    document.getElementById('aiModalBody').innerHTML = '';
+    document.getElementById('aiAnalysisModal').style.display = 'block';
+}
+
+// Close AI analysis modal
+function closeAiAnalysisModal() {
+    document.getElementById('aiAnalysisModal').style.display = 'none';
+}
+
+// Get Portfolio Review
+async function getPortfolioReview() {
+    const portfolioData = await fetchPortfolioData();
+    
+    if (!portfolioData) {
+        showAlert('No holdings data available. Please add some holdings first.', 'warning');
+        return;
+    }
+    
+    showAiLoading('💼 Portfolio Review');
+    
+    try {
+        const prompt = `Please provide a concise portfolio review:
+
+${portfolioData}
+
+Focus on:
+1. **Portfolio Health**: Overall assessment and health score (1-10)
+2. **Diversification**: Sector and asset type analysis
+3. **Performance**: Returns and key insights
+4. **Top Picks**: Best performing holdings
+5. **Concerns**: Any red flags or issues
+6. **Recommendations**: 3-5 actionable suggestions
+
+Keep it concise and use markdown formatting with headers (#), bold (**text**), lists (- or *), and bullet points.`;
+        
+        // Show modal and start streaming
+        document.getElementById('aiModalTitle').textContent = '💼 Portfolio Review';
+        document.getElementById('aiModalStatus').innerHTML = `
+            <div class="ai-loading">
+                <div class="loading-spinner"></div>
+                <span>Analyzing...</span>
+            </div>
+        `;
+        document.getElementById('aiModalBody').innerHTML = '<div class="ai-content" id="aiStreamingContent"></div>';
+        document.getElementById('aiAnalysisModal').style.display = 'block';
+        
+        await callDeepSeekAPI(
+            prompt,
+            (content) => {
+                // On chunk - update content
+                document.getElementById('aiStreamingContent').innerHTML = formatMarkdown(content);
+                document.getElementById('aiModalBody').scrollTop = document.getElementById('aiModalBody').scrollHeight;
+            },
+            (finalContent) => {
+                // On complete - hide loading
+                document.getElementById('aiModalStatus').innerHTML = '';
+            },
+            (error) => {
+                // On error
+                console.error('Error getting portfolio review:', error);
+                document.getElementById('aiModalStatus').innerHTML = `
+                    <div class="ai-error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        );
+        
+    } catch (error) {
+        console.error('Error getting portfolio review:', error);
+        document.getElementById('aiModalStatus').innerHTML = `
+            <div class="ai-error">
+                ❌ Error: ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Get Risk Management
+async function getRiskManagement() {
+    const portfolioData = await fetchPortfolioData();
+    
+    if (!portfolioData) {
+        showAlert('No holdings data available. Please add some holdings first.', 'warning');
+        return;
+    }
+    
+    showAiLoading('⚠️ Risk Management');
+    
+    try {
+        const prompt = `Please provide a comprehensive risk assessment:
+
+${portfolioData}
+
+Focus on:
+1. **Risk Level**: Overall portfolio risk (Low/Medium/High)
+2. **Sector Concentration**: Any overexposed sectors
+3. **Single Stock Risk**: Holdings that are too large
+4. **Market Risk**: Exposure to market volatility
+5. **Risk Mitigation**: 5 specific strategies to reduce risk
+6. **Stop Loss**: Recommended stop-loss levels
+7. **Position Sizing**: Suggestions for optimal allocation
+
+Be specific and actionable. Use markdown formatting with headers (#), bold (**text**), lists (- or *), and bullet points.`;
+        
+        // Show modal and start streaming
+        document.getElementById('aiModalTitle').textContent = '⚠️ Risk Management';
+        document.getElementById('aiModalStatus').innerHTML = `
+            <div class="ai-loading">
+                <div class="loading-spinner"></div>
+                <span>Analyzing...</span>
+            </div>
+        `;
+        document.getElementById('aiModalBody').innerHTML = '<div class="ai-content" id="aiStreamingContent"></div>';
+        document.getElementById('aiAnalysisModal').style.display = 'block';
+        
+        await callDeepSeekAPI(
+            prompt,
+            (content) => {
+                // On chunk - update content
+                document.getElementById('aiStreamingContent').innerHTML = formatMarkdown(content);
+                document.getElementById('aiModalBody').scrollTop = document.getElementById('aiModalBody').scrollHeight;
+            },
+            (finalContent) => {
+                // On complete - hide loading
+                document.getElementById('aiModalStatus').innerHTML = '';
+            },
+            (error) => {
+                // On error
+                console.error('Error getting risk management:', error);
+                document.getElementById('aiModalStatus').innerHTML = `
+                    <div class="ai-error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        );
+        
+    } catch (error) {
+        console.error('Error getting risk management:', error);
+        document.getElementById('aiModalStatus').innerHTML = `
+            <div class="ai-error">
+                ❌ Error: ${error.message}
+            </div>
+        `;
+    }
+}
+
+// Format markdown to HTML
+function formatMarkdown(text) {
+    if (!text) return '';
+    
+    // Escape HTML first
+    let lines = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .split('\n');
+    
+    let html = '';
+    let inList = false;
+    let listType = '';
+    
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        
+        // Code blocks
+        if (line.startsWith('```')) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            html += '<pre class="ai-code-block"><code>' + line.slice(3) + '</code></pre>';
+            continue;
+        }
+        
+        // Headers
+        const headerMatch = line.match(/^(#{1,3})\s+(.*)$/);
+        if (headerMatch) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            const level = headerMatch[1].length;
+            const content = headerMatch[2];
+            if (level === 3) {
+                html += '<h3 class="ai-h3">' + content + '</h3>';
+            } else if (level === 2) {
+                html += '<h2 class="ai-h2">' + content + '</h2>';
+            } else {
+                html += '<h1 class="ai-h1">' + content + '</h1>';
+            }
+            continue;
+        }
+        
+        // Horizontal rule
+        if (line.match(/^(\-{3,}|\*{3,})$/)) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            html += '<hr class="ai-hr">';
+            continue;
+        }
+        
+        // Empty lines
+        if (!line.trim()) {
+            if (inList) {
+                html += '</ul>';
+                inList = false;
+            }
+            continue;
+        }
+        
+        // Bold (**text**)
+        line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="ai-bold">$1</strong>');
+        
+        // Italic (*text*) - only if not part of bold
+        line = line.replace(/\*([^*]+)\*/g, '<em class="ai-italic">$1</em>');
+        
+        // Inline code (`code`)
+        line = line.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+        
+        // Numbered list (1. item)
+        const numberedMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        if (numberedMatch) {
+            if (!inList || listType !== 'numbered') {
+                if (inList) html += '</ul>';
+                html += '<ol class="ai-list-numbered">';
+                inList = true;
+                listType = 'numbered';
+            }
+            html += '<li>' + numberedMatch[2] + '</li>';
+            continue;
+        }
+        
+        // Bullet list (- item or * item)
+        const bulletMatch = line.match(/^[-*]\s+(.*)$/);
+        if (bulletMatch) {
+            if (!inList || listType !== 'bullet') {
+                if (inList) html += '</ul>';
+                html += '<ul class="ai-list-bullet">';
+                inList = true;
+                listType = 'bullet';
+            }
+            html += '<li>' + bulletMatch[1] + '</li>';
+            continue;
+        }
+        
+        // Regular paragraph
+        if (inList) {
+            html += '</ul>';
+            inList = false;
+        }
+        
+        html += '<p class="ai-paragraph">' + line + '</p>';
+    }
+    
+    // Close any open list
+    if (inList) {
+        html += '</ul>';
+    }
+    
+    return html;
+}
+
+// Export functions to window
+window.closeAiAnalysisModal = closeAiAnalysisModal;
+window.getPortfolioReview = getPortfolioReview;
+window.getRiskManagement = getRiskManagement;

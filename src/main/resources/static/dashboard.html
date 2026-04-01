@@ -48,6 +48,12 @@
             <header class="top-header">
                 <h1>Dashboard</h1>
                 <div class="header-actions">
+                    <button class="btn btn-info" onclick="getPortfolioReview()">
+                        💼 Portfolio Review
+                    </button>
+                    <button class="btn btn-warning" onclick="getRiskManagement()">
+                        ⚠️ Risk Management
+                    </button>
                     <button class="btn btn-primary" onclick="window.location.href='holdings.html'">
                         ➕ Add Asset
                     </button>
@@ -129,6 +135,23 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- AI Analysis Modal -->
+    <div id="aiAnalysisModal" class="modal">
+        <div class="modal-content ai-analysis-modal">
+            <span class="close" onclick="closeAiAnalysisModal()">&times;</span>
+            <div class="ai-modal-header">
+                <h2 id="aiModalTitle">🤖 AI Analysis</h2>
+                <div class="ai-modal-status" id="aiModalStatus"></div>
+            </div>
+            <div class="ai-modal-body" id="aiModalBody">
+                <!-- Analysis content will be inserted here -->
+            </div>
+            <div class="ai-modal-footer">
+                <button class="btn btn-secondary" onclick="closeAiAnalysisModal()">Close</button>
+            </div>
+        </div>
     </div>
 
     <script src="common.js"></script>
