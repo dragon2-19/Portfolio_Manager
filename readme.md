@@ -146,7 +146,7 @@ http://localhost:8080/ai-assistant.html # AI Assistant
 - ✅ Detailed stock information display (open price, high price, low price, volume, etc.)
 - ✅ Quick add to portfolio
 - ✅ Popular A-share quick search (SPDB, Kweichow Moutai, Ping An, PAB, CMB)
-- ✅ Support for 20 popular A-share stocks
+- ✅ Support search for all A-share stocks
 - ✅ 📊 Stock fundamental and technical analysis (AI-powered)
 - ✅ Streaming AI response with real-time analysis display
 - ✅ Markdown formatted analysis reports
