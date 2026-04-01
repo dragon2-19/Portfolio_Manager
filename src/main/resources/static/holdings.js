@@ -19,6 +19,10 @@ window.updateBuyPrice = updateBuyPrice;
 window.updateSellPrice = updateSellPrice;
 window.updateBuyTotal = updateBuyTotal;
 window.updateSellProfit = updateSellProfit;
+window.validateBuyDate = validateBuyDate;
+window.validateSellDate = validateSellDate;
+window.validateBuyDateOnInput = validateBuyDateOnInput;
+window.validateSellDateOnInput = validateSellDateOnInput;
 
 console.log('holdings.js loaded - functions exported to window');
 
@@ -237,6 +241,129 @@ async function withdrawCash(event) {
     }
 }
 
+// Check if date is weekend (Saturday or Sunday)
+function isWeekend(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDay();
+    return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday
+}
+
+// Check if date is a Chinese stock market holiday
+function isChineseHoliday(dateString) {
+    // Major Chinese holidays that typically have extended market closures
+    // Format: YYYY-MM-DD
+    const holidays = [
+        // Spring Festival (varies by year, 2025 example)
+        '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31',
+        '2025-02-01', '2025-02-02', '2025-02-03', '2025-02-04',
+        // Qingming Festival
+        '2025-04-04', '2025-04-05', '2025-04-06',
+        // Labor Day
+        '2025-05-01', '2025-05-02', '2025-05-03', '2025-05-04', '2025-05-05',
+        // Dragon Boat Festival
+        '2025-05-31', '2025-06-01', '2025-06-02',
+        // Mid-Autumn Festival
+        '2025-10-01', '2025-10-02', '2025-10-03', '2025-10-04', '2025-10-05',
+        '2025-10-06', '2025-10-07', '2025-10-08',
+        // National Day (often combined with Mid-Autumn)
+    ];
+    return holidays.includes(dateString);
+}
+
+// Check if date is a trading day
+function isTradingDay(dateString) {
+    if (!dateString) return false;
+    return !isWeekend(dateString) && !isChineseHoliday(dateString);
+}
+
+// Validate buy date
+function validateBuyDate() {
+    const dateValue = document.getElementById('buyDate').value;
+    const warningElement = document.getElementById('buyDateWarning');
+
+    if (!dateValue) {
+        warningElement.style.display = 'none';
+        return true; // Empty is allowed (will use today)
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Check if date is in the future
+    if (dateValue > today) {
+        document.getElementById('buyDate').value = '';
+        warningElement.textContent = '⚠️ Future date not allowed';
+        warningElement.style.display = 'block';
+        setTimeout(() => {
+            warningElement.style.display = 'none';
+        }, 3000);
+        return false;
+    }
+
+    // Check if it's a trading day
+    if (!isTradingDay(dateValue)) {
+        document.getElementById('buyDate').value = '';
+        const reason = isWeekend(dateValue) ? 'weekend' : 'holiday';
+        warningElement.textContent = `⚠️ ${dateValue} is a ${reason}, market closed`;
+        warningElement.style.display = 'block';
+        setTimeout(() => {
+            warningElement.style.display = 'none';
+        }, 3000);
+        return false;
+    }
+
+    warningElement.style.display = 'none';
+    return true;
+}
+
+// Validate sell date
+function validateSellDate() {
+    const dateValue = document.getElementById('sellDate').value;
+    const warningElement = document.getElementById('sellDateWarning');
+
+    if (!dateValue) {
+        warningElement.style.display = 'none';
+        return true; // Empty is allowed (will use today)
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Check if date is in the future
+    if (dateValue > today) {
+        document.getElementById('sellDate').value = '';
+        warningElement.textContent = '⚠️ Future date not allowed';
+        warningElement.style.display = 'block';
+        setTimeout(() => {
+            warningElement.style.display = 'none';
+        }, 3000);
+        return false;
+    }
+
+    // Check if it's a trading day
+    if (!isTradingDay(dateValue)) {
+        document.getElementById('sellDate').value = '';
+        const reason = isWeekend(dateValue) ? 'weekend' : 'holiday';
+        warningElement.textContent = `⚠️ ${dateValue} is a ${reason}, market closed`;
+        warningElement.style.display = 'block';
+        setTimeout(() => {
+            warningElement.style.display = 'none';
+        }, 3000);
+        return false;
+    }
+
+    warningElement.style.display = 'none';
+    return true;
+}
+
+// Real-time validation for buy date (oninput event)
+function validateBuyDateOnInput() {
+    validateBuyDate();
+}
+
+// Real-time validation for sell date (oninput event)
+function validateSellDateOnInput() {
+    validateSellDate();
+}
+
 // Update buy price based on ticker and date
 async function updateBuyPrice() {
     const ticker = document.getElementById('buyTicker').value.trim();
@@ -244,6 +371,11 @@ async function updateBuyPrice() {
     const priceInfo = document.getElementById('buyPriceInfo');
 
     if (!ticker) return;
+
+    // Validate date if provided
+    if (date && !validateBuyDate()) {
+        return;
+    }
 
     try {
         let price;
@@ -308,6 +440,11 @@ async function openBuyModal() {
     try {
         document.getElementById('buyForm').reset();
         document.getElementById('buyTotalAmount').textContent = '¥0.00';
+
+        // Set max date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('buyDate').setAttribute('max', today);
+
         document.getElementById('buyModal').style.display = 'block';
         console.log('buyModal opened successfully');
     } catch (error) {
@@ -334,6 +471,12 @@ async function buyStock(event) {
     const lots = parseInt(document.getElementById('buyVolume').value);
     const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
     const purchaseDate = document.getElementById('buyDate').value || '';
+
+    // Validate date if provided
+    if (purchaseDate && !validateBuyDate()) {
+        return;
+    }
+
     console.log('Buy ticker:', ticker, 'lots:', lots, 'shares:', shares, 'date:', purchaseDate);
 
     try {
@@ -371,6 +514,11 @@ async function updateSellPrice() {
     const priceInfo = document.getElementById('sellPriceInfo');
 
     if (!ticker) return;
+
+    // Validate date if provided
+    if (date && !validateSellDate()) {
+        return;
+    }
 
     try {
         let price;
@@ -435,6 +583,11 @@ async function openSellModal() {
     try {
         document.getElementById('sellForm').reset();
         document.getElementById('sellProfit').textContent = '¥0.00';
+
+        // Set max date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('sellDate').setAttribute('max', today);
+
         document.getElementById('sellModal').style.display = 'block';
         console.log('sellModal opened successfully');
     } catch (error) {
@@ -461,6 +614,12 @@ async function sellStock(event) {
     const lots = parseInt(document.getElementById('sellVolume').value);
     const shares = lots * 100; // Convert lots to shares (1 lot = 100 shares)
     const sellDate = document.getElementById('sellDate').value || '';
+
+    // Validate date if provided
+    if (sellDate && !validateSellDate()) {
+        return;
+    }
+
     console.log('Sell ticker:', ticker, 'lots:', lots, 'shares:', shares, 'date:', sellDate);
 
     try {
