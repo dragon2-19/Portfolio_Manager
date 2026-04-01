@@ -1,6 +1,6 @@
 # 投资组合管理系统 (Portfolio Manager)
 
-一个功能完整的投资组合管理系统，集成国内财经数据API（腾讯财经、新浪财经）、实时图表、历史交易记录和多页面仪表板。
+一个功能完整的投资组合管理系统，集成国内财经数据API（腾讯财经、新浪财经）、实时图表、历史交易记录、AI智能分析和多页面仪表板。
 
 ## 技术栈
 
@@ -17,6 +17,7 @@
 - **CSS3** (现代化渐变响应式设计)
 - **JavaScript (ES6+)**
 - **Chart.js** (数据可视化)
+- **Marked.js** (Markdown渲染)
 
 ## 项目结构
 
@@ -50,12 +51,14 @@ finalproject1/
 │   │           ├── holdings.html             # 持仓详情页面
 │   │           ├── transactions.html         # 交易记录页面
 │   │           ├── search.html               # 股票搜索页面
+│   │           ├── ai-assistant.html         # AI助手页面
 │   │           ├── style.css                 # 样式文件
 │   │           ├── common.js                 # 公共脚本
 │   │           ├── dashboard.js              # 仪表板脚本
 │   │           ├── holdings.js               # 持仓脚本
 │   │           ├── transactions.js           # 交易脚本
-│   │           └── search.js                 # 搜索脚本
+│   │           ├── search.js                 # 搜索脚本
+│   │           └── ai-assistant.js            # AI助手脚本
 ├── pom.xml                                    # Maven 配置
 └── README.md                                  # 项目说明
 ```
@@ -101,6 +104,7 @@ http://localhost:8080/dashboard.html    # 仪表板
 http://localhost:8080/holdings.html     # 持仓详情
 http://localhost:8080/transactions.html # 交易记录
 http://localhost:8080/search.html       # 股票搜索
+http://localhost:8080/ai-assistant.html # AI助手
 ```
 
 ## 功能特性
@@ -111,6 +115,7 @@ http://localhost:8080/search.html       # 股票搜索
 - ✅ 持仓占比饼图
 - ✅ 持仓概览卡片
 - ✅ 最近交易列表
+- ✅ 红涨绿跌配色（中国股市标准）
 
 ### 💼 持仓管理 (Holdings)
 - ✅ 持仓列表展示
@@ -120,6 +125,11 @@ http://localhost:8080/search.html       # 股票搜索
 - ✅ 更新当前价格
 - ✅ 按资产类型统计
 - ✅ 盈亏实时计算
+- ✅ 现金充值/提现
+- ✅ 交易量单位为手（1手=100股）
+- ✅ 交易日期验证（禁止未来日期和节假日）
+- ✅ 价格字段可编辑
+- ✅ 快速卖出功能
 
 ### 📝 交易记录 (Transactions)
 - ✅ 交易历史记录
@@ -127,6 +137,7 @@ http://localhost:8080/search.html       # 股票搜索
 - ✅ 自动更新持仓数量
 - ✅ 交易统计（总数、买入、卖出、总额）
 - ✅ 按持仓筛选交易
+- ✅ 按日期筛选交易
 
 ### 🔍 股票搜索 (Stock Search)
 - ✅ 实时A股股票信息查询（使用新浪财经API，数据准确稳定）
@@ -136,6 +147,18 @@ http://localhost:8080/search.html       # 股票搜索
 - ✅ 快速添加到投资组合
 - ✅ 热门A股快捷搜索（浦发银行、贵州茅台、中国平安、平安银行、招商银行）
 - ✅ 支持20只热门A股股票搜索
+- ✅ 📊 股票基本面和技术分析（AI驱动）
+- ✅ 流式AI响应，实时展示分析结果
+- ✅ Markdown格式化分析报告
+
+### 🤖 AI助手 (AI Assistant)
+- ✅ 多AI模型支持（DeepSeek、Qwen、Kimi、ChatGPT、Doubao、ChatGLM）
+- ✅ 流式AI响应
+- ✅ Markdown格式化输出
+- ✅ API配置管理（支持多个AI提供商）
+- ✅ 实时对话界面
+- ✅ 股票投资建议
+- ✅ 投资组合分析
 
 ## REST API 文档
 
@@ -151,6 +174,11 @@ http://localhost:8080/search.html       # 股票搜索
 | PUT | `/api/holdings/{id}` | 更新持仓 |
 | PATCH | `/api/holdings/{id}/price` | 更新当前价格 |
 | DELETE | `/api/holdings/{id}` | 删除持仓 |
+| POST | `/api/holdings/buy` | 买入股票/债券 |
+| POST | `/api/holdings/sell` | 卖出股票/债券 |
+| GET | `/api/holdings/cash/balance` | 获取现金余额 |
+| POST | `/api/holdings/cash/deposit` | 充值现金 |
+| POST | `/api/holdings/cash/withdraw` | 提取现金 |
 
 ### 股票 API
 
@@ -158,6 +186,7 @@ http://localhost:8080/search.html       # 股票搜索
 |------|------|------|
 | GET | `/api/stocks/{ticker}` | 获取股票信息（实时数据+30天K线） |
 | GET | `/api/stocks/{ticker}/history` | 获取股票历史价格（支持时间范围参数） |
+| GET | `/api/stocks/{ticker}/historical-open?date=YYYY-MM-DD` | 获取历史开盘价 |
 | GET | `/api/stocks/search?query=关键词` | 搜索股票（支持代码和名称模糊搜索） |
 | POST | `/api/stocks/update-holding-price` | 更新持仓价格 |
 
@@ -217,6 +246,7 @@ http://localhost:8080/search.html       # 股票搜索
 - 卡片式布局
 - 响应式设计（支持移动端）
 - 流畅的动画效果
+- 红涨绿跌配色（中国股市标准）
 
 ### 数据可视化
 - 资产分布饼图
@@ -228,9 +258,64 @@ http://localhost:8080/search.html       # 股票搜索
 - 实时数据更新
 - 友好的模态框
 - 快捷操作按钮
-- 盈亏颜色标识（绿涨红跌）
+- 盈亏颜色标识（红涨绿跌）
 - 支持A股股票代码（6位数字，如：600000）
 - 智能搜索提示（支持代码和名称模糊匹配）
+- 交易日期实时验证（文本提示，非弹窗）
+- 流式AI响应展示
+
+## AI 模型配置
+
+系统支持以下AI模型：
+
+1. **DeepSeek**（默认）
+   - Base URL: https://api.deepseek.com
+   - Models: deepseek-chat, deepseek-coder
+
+2. **Qwen (通义千问)**
+   - Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1
+   - Models: qwen-turbo, qwen-plus, qwen-max, qwen-coder-turbo, qwen-coder-plus
+
+3. **Kimi (Moonshot)**
+   - Base URL: https://api.moonshot.cn/v1
+   - Models: moonshot-v1-8k, moonshot-v1-32k, moonshot-v1-128k
+
+4. **ChatGPT (OpenAI)**
+   - Base URL: https://api.openai.com/v1
+   - Models: gpt-4, gpt-4-turbo, gpt-3.5-turbo
+
+5. **Doubao (字节跳动)**
+   - Base URL: https://ark.cn-beijing.volces.com/api/v3
+   - Models: ep-20241101182614-xw6xq, ep-20241101182614-sj2kq
+
+6. **ChatGLM (智谱AI)**
+   - Base URL: https://open.bigmodel.cn/api/paas/v4
+   - Models: glm-4, glm-4-flash, glm-4-plus
+
+配置方法：
+1. 进入AI Assistant页面
+2. 点击"⚙️ API Configuration"按钮
+3. 选择AI提供商
+4. 输入API Key
+5. 选择模型
+6. 保存配置
+
+## 交易规则
+
+### 交易日期限制
+- ❌ 不能选择未来日期
+- ❌ 不能选择周末（周六、周日）
+- ❌ 不能选择中国股市节假日（春节、清明节、劳动节、端午节、中秋节、国庆节等）
+- ✅ 只能选择交易日（周一至周五，非节假日）
+
+### 交易量单位
+- 交易量以"手"为单位
+- 1手 = 100股
+- 输入的交易量会自动转换为股数发送到后端
+
+### 手续费计算
+- 买入：总金额 = 价格 × 股数 × 1.0002（手续费0.02%）
+- 卖出：卖出金额 = 价格 × 股数 × 0.9993（手续费0.07%）
 
 ## 后续开发计划
 
@@ -242,6 +327,8 @@ http://localhost:8080/search.html       # 股票搜索
 - [ ] 支持数据导出为 Excel/CSV
 - [ ] 添加投资组合回测功能
 - [ ] 实现移动端 App
+- [ ] 添加更多AI模型支持
+- [ ] 优化节假日数据管理（从API动态获取）
 
 ## 技术亮点
 
@@ -257,6 +344,14 @@ http://localhost:8080/search.html       # 股票搜索
 10. **交易历史追踪**
 11. **A股股票代码自动识别和转换**
 12. **智能搜索功能**（支持代码和名称模糊匹配）
+13. **AI多模型支持**（DeepSeek、Qwen、Kimi、ChatGPT、Doubao、ChatGLM）
+14. **流式AI响应**（实时展示分析结果）
+15. **Markdown格式化输出**
+16. **股票基本面和技术分析**
+17. **交易日期智能验证**（禁止未来日期和节假日）
+18. **红涨绿跌配色**（中国股市标准）
+19. **交易量手数单位**（1手=100股）
+20. **价格字段可编辑**
 
 ## 注意事项
 
@@ -266,6 +361,9 @@ http://localhost:8080/search.html       # 股票搜索
 4. 建议在生产环境中添加 HTTPS 配置
 5. 部分依赖库存在已知安全漏洞，建议定期更新
 6. 建议控制请求频率，避免被API限流
+7. AI功能需要配置相应的API Key才能使用
+8. 节假日数据目前为硬编码，需要定期更新
+9. AI分析结果仅供参考，不构成投资建议
 
 ## 许可证
 
