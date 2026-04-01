@@ -201,7 +201,8 @@ function updateAssetTypeChart(summary) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+             maintainAspectRatio: false,
+                            aspectRatio: 1,
             plugins: {
                 legend: {
                     position: 'bottom',
@@ -465,7 +466,9 @@ async function updatePortfolioDistributionChart(summary) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,  //
+                aspectRatio: 1,              //
+
                 plugins: {
                     legend: {
                         position: 'right',

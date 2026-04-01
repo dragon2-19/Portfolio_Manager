@@ -518,7 +518,7 @@ body::before {
 
 .chart-wrapper {
     position: relative;
-    height: 320px;
+    height: 400px;
 }
 
 .chart-wrapper canvas {
