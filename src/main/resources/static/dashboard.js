@@ -144,14 +144,18 @@ function createTransactionItem(transaction) {
     const typeIcon = transaction.transactionType === 'BUY' ? '📈' : '📉';
     const typeText = transaction.transactionType === 'BUY' ? 'Buy' : 'Sell';
 
+    // Use ticker directly from transaction object
+    const ticker = transaction.ticker || (transaction.transactionType === 'DEPOSIT' || transaction.transactionType === 'WITHDRAW' ? 'CASH' : 'N/A');
+    const name = transaction.stockName || '';
+
     item.innerHTML = `
         <div class="transaction-icon ${typeClass}">
             ${typeIcon}
         </div>
         <div class="transaction-info">
-            <div class="transaction-ticker">${transaction.holding?.ticker || 'N/A'}</div>
+            <div class="transaction-ticker">${ticker} ${name ? `(${name})` : ''}</div>
             <div class="transaction-details">
-                ${typeText} ${transaction.volume} shares @ ${formatCurrency(transaction.price)}
+                ${typeText} ${transaction.volume} @ ${formatCurrency(transaction.price)}
             </div>
         </div>
         <div class="transaction-amount">

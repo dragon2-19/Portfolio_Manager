@@ -261,12 +261,12 @@ async function displayStockDetails(stockInfo) {
         document.getElementById('searchResults').style.display = 'none';
     }
 
-    // Update all charts
+    // Update price chart and volume display
     updatePriceChart(stockInfo);
-    createKLineChart(stockInfo);
+    updateTodayVolume(stockInfo);
 }
 
-// Update price chart (combination of price line and volume bars)
+// Update price chart (only price line, no volume)
 function updatePriceChart(stockInfo) {
     const ctx = document.getElementById('priceChart').getContext('2d');
 
@@ -279,200 +279,39 @@ function updatePriceChart(stockInfo) {
     }
 
     const labels = stockInfo.priceHistory.map(point => point.date);
-    const priceData = stockInfo.priceHistory.map(point => point.price);
-    const volumeData = stockInfo.priceHistory.map(point => point.volume || 0);
+    const data = stockInfo.priceHistory.map(point => point.price);
 
-    // Calculate max volume for normalization
-    const maxVolume = Math.max(...volumeData);
+    // Determine color based on price change (red for up, green for down - Chinese stock market convention)
+    const firstPrice = data[0];
+    const lastPrice = data[data.length - 1];
+    const isUp = lastPrice >= firstPrice;
+    
+    // Red for up, green for down
+    const lineColor = '#2196F3'; // Blue line
+    const bgColor = isUp ? 'rgba(244, 67, 54, 0.15)' : 'rgba(76, 175, 80, 0.15)';
 
     priceChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    type: 'line',
-                    label: stockInfo.ticker + ' Price',
-                    data: priceData,
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 6,
-                    yAxisID: 'y',
-                    order: 1
-                },
-                {
-                    type: 'bar',
-                    label: 'Volume',
-                    data: volumeData,
-                    backgroundColor: 'rgba(118, 75, 162, 0.3)',
-                    borderColor: 'rgba(118, 75, 162, 0.5)',
-                    borderWidth: 1,
-                    yAxisID: 'y1',
-                    order: 2,
-                    barThickness: 8
-                }
-            ]
+            datasets: [{
+                label: stockInfo.ticker + ' Price',
+                data: data,
+                borderColor: lineColor,
+                backgroundColor: bgColor,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.5,
+                pointRadius: 2,
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+            }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    padding: 12,
-                    displayColors: true,
-                    callbacks: {
-                        label: function(context) {
-                            if (context.dataset.type === 'line') {
-                                return `价格: ¥${context.raw.toFixed(2)}`;
-                            } else {
-                                return `成交量: ${formatNumber(context.raw)}`;
-                            }
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        maxTicksLimit: 10,
-                        color: '#666'
-                    }
-                },
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return '¥' + value.toFixed(2);
-                        },
-                        color: '#666'
-                    }
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    grid: {
-                        drawOnChartArea: false
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return formatNumber(value);
-                        },
-                        color: '#666'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Create K-line chart (Candlestick chart)
-function createKLineChart(stockInfo) {
-    const ctx = document.getElementById('changeChart').getContext('2d');
-
-    if (changeChart) {
-        changeChart.destroy();
-    }
-
-    if (!stockInfo.priceHistory || stockInfo.priceHistory.length === 0) {
-        return;
-    }
-
-    const labels = stockInfo.priceHistory.map(point => point.date);
-
-    // Prepare K-line data: each candlestick needs [open, close, low, high]
-    // Since Chart.js doesn't natively support candlestick, we'll use a simplified approach
-    // with floating bars for body and lines for wicks
-
-    const bodyData = [];
-    const bodyColors = [];
-    const borderColors = [];
-    const highData = [];
-    const lowData = [];
-
-    stockInfo.priceHistory.forEach(point => {
-        const open = point.open != null ? point.open : point.price;
-        const close = point.price;
-        const high = point.high != null ? point.high : Math.max(open, close);
-        const low = point.low != null ? point.low : Math.min(open, close);
-
-        const isUp = close >= open;
-        bodyColors.push(isUp ? 'rgba(239, 83, 80, 0.8)' : 'rgba(76, 175, 80, 0.8)');
-        borderColors.push(isUp ? '#ef5350' : '#4caf50');
-
-        // Body: [min(open, close), max(open, close)]
-        bodyData.push([Math.min(open, close), Math.max(open, close)]);
-        highData.push(high);
-        lowData.push(low);
-    });
-
-    changeChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'High',
-                    data: highData,
-                    type: 'line',
-                    borderColor: 'rgba(255, 99, 132, 0.3)',
-                    borderWidth: 1,
-                    pointRadius: 0,
-                    fill: false,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Low',
-                    data: lowData,
-                    type: 'line',
-                    borderColor: 'rgba(54, 162, 235, 0.3)',
-                    borderWidth: 1,
-                    pointRadius: 0,
-                    fill: false,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'K-line Body',
-                    data: bodyData,
-                    backgroundColor: bodyColors,
-                    borderColor: borderColors,
-                    borderWidth: 1,
-                    barThickness: 6,
-                    borderRadius: 0,
-                    yAxisID: 'y'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             interaction: {
                 intersect: false,
                 mode: 'index'
@@ -483,24 +322,16 @@ function createKLineChart(stockInfo) {
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    displayColors: false,
                     callbacks: {
+                        title: function(context) {
+                            return '日期: ' + context[0].label;
+                        },
                         label: function(context) {
-                            const point = stockInfo.priceHistory[context.dataIndex];
-                            const open = point.open != null ? point.open : point.price;
-                            const close = point.price;
-                            const high = point.high != null ? point.high : Math.max(open, close);
-                            const low = point.low != null ? point.low : Math.min(open, close);
-                            const change = close - open;
-                            const changePercent = ((change / open) * 100).toFixed(2);
-                            const icon = change >= 0 ? '↑' : '↓';
-
-                            return [
-                                `开盘: ¥${open.toFixed(2)}`,
-                                `收盘: ¥${close.toFixed(2)}`,
-                                `最高: ¥${high.toFixed(2)}`,
-                                `最低: ¥${low.toFixed(2)}`,
-                                `涨跌幅: ${icon} ${Math.abs(changePercent)}%`
-                            ];
+                            return '收盘价: ¥' + context.raw.toFixed(2);
                         }
                     }
                 }
@@ -529,6 +360,32 @@ function createKLineChart(stockInfo) {
             }
         }
     });
+}
+
+// Update today's volume display
+function updateTodayVolume(stockInfo) {
+    const volume = stockInfo.volume || 0;
+    const volumeElement = document.getElementById('volumeValue');
+    const volumeBar = document.getElementById('volumeBar');
+
+    // Format volume number (in millions for large numbers)
+    const formattedVolume = volume >= 1000000 ?
+        (volume / 1000000).toFixed(2) + 'M' :
+        volume >= 1000 ?
+        (volume / 1000).toFixed(2) + 'K' :
+        volume.toString();
+
+    volumeElement.textContent = formattedVolume + ' shares';
+
+    // Calculate bar width based on volume (normalize to a reasonable range)
+    // Assuming max expected volume is around 100 million shares for visualization
+    const maxExpectedVolume = 100000000;
+    const percentage = Math.min((volume / maxExpectedVolume) * 100, 100);
+
+    // Set bar color based on price change
+    const barColor = stockInfo.change >= 0 ? '#4caf50' : '#ef5350';
+    volumeBar.style.width = percentage + '%';
+    volumeBar.style.background = `linear-gradient(90deg, ${barColor}40 0%, ${barColor} 100%)`;
 }
 
 // Change time range

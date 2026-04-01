@@ -108,7 +108,7 @@
                 <!-- Price Chart -->
                 <div class="chart-section">
                     <div class="chart-header">
-                        <h3>📈 Price Trend & Volume</h3>
+                        <h3>📈 Price Trend</h3>
                         <div class="chart-controls">
                             <button class="chart-btn active" onclick="changeRange('1mo', this)">1M</button>
                             <button class="chart-btn" onclick="changeRange('3mo', this)">3M</button>
@@ -121,13 +121,19 @@
                     </div>
                 </div>
 
-                <!-- Price Change K-line Chart -->
+                <!-- Today's Volume -->
                 <div class="chart-section">
                     <div class="chart-header">
-                        <h3>📈 K-Line Chart</h3>
+                        <h3>📊 Today's Volume</h3>
                     </div>
-                    <div class="chart-wrapper large">
-                        <canvas id="changeChart"></canvas>
+                    <div class="volume-display" id="todayVolume">
+                        <div class="volume-info">
+                            <div class="volume-label">Trading Volume</div>
+                            <div class="volume-value" id="volumeValue">0</div>
+                        </div>
+                        <div class="volume-bar-container">
+                            <div class="volume-bar" id="volumeBar"></div>
+                        </div>
                     </div>
                 </div>
 
