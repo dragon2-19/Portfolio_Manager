@@ -1,5 +1,6 @@
 let priceChart = null;
 let changeChart = null;
+let candlestickChart = null;
 let currentStock = null;
 let currentRange = '1mo';
 let shChart = null;
@@ -280,8 +281,9 @@ async function displayStockDetails(stockInfo) {
         document.getElementById('searchResults').style.display = 'none';
     }
 
-    // Update price chart and volume display
+    // Update price chart, candlestick chart and volume display
     updatePriceChart(stockInfo);
+    updateCandlestickChart(stockInfo);
     updateTodayVolume(stockInfo);
 }
 
@@ -863,6 +865,333 @@ function formatMarkdown(text) {
     }
 
     return html;
+}
+
+// Update candlestick chart with ECharts
+function updateCandlestickChart(stockInfo) {
+    const chartDom = document.getElementById('candlestickChart');
+    if (!chartDom) {
+        console.error('Candlestick chart container not found');
+        return;
+    }
+
+    // Dispose existing chart if it exists
+    if (candlestickChart) {
+        candlestickChart.dispose();
+    }
+
+    if (!stockInfo.priceHistory || stockInfo.priceHistory.length === 0) {
+        return;
+    }
+
+    // Initialize ECharts instance
+    candlestickChart = echarts.init(chartDom);
+
+    // Prepare data for candlestick chart
+    // Format: [open, close, lowest, highest]
+    const data = stockInfo.priceHistory.map(point => {
+        // Use price as close price if not available
+        const close = point.price;
+        const open = point.open || point.price;
+        const low = point.low || Math.min(parseFloat(open), parseFloat(close));
+        const high = point.high || Math.max(parseFloat(open), parseFloat(close));
+        return [
+            parseFloat(open).toFixed(2),
+            parseFloat(close).toFixed(2),
+            parseFloat(low).toFixed(2),
+            parseFloat(high).toFixed(2)
+        ];
+    });
+
+    // Prepare dates for x-axis
+    const dates = stockInfo.priceHistory.map(point => point.date);
+
+    // Prepare volume data for bar chart
+    const volumes = stockInfo.priceHistory.map(point => {
+        const open = point.open || point.price;
+        const close = point.price;
+        const isUp = parseFloat(close) >= parseFloat(open);
+        return {
+            value: 0, // Will be set based on actual volume if available
+            itemStyle: {
+                color: isUp ? '#ef5350' : '#26a69a'
+            }
+        };
+    });
+
+    const option = {
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross'
+            },
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            borderColor: '#333',
+            borderWidth: 1,
+            textStyle: {
+                color: '#fff'
+            },
+            formatter: function(params) {
+                if (!params || params.length === 0) return '';
+
+                const dataIndex = params[0].dataIndex;
+                const point = stockInfo.priceHistory[dataIndex];
+                const open = parseFloat(data[dataIndex][0]);
+                const close = parseFloat(data[dataIndex][1]);
+                const low = parseFloat(data[dataIndex][2]);
+                const high = parseFloat(data[dataIndex][3]);
+                const change = ((close - open) / open * 100).toFixed(2);
+                const changeSign = change >= 0 ? '+' : '';
+
+                return `
+                    <div style="padding: 10px; min-width: 150px;">
+                        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">${point.date}</div>
+                        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+                            <span>open:</span>
+                            <span style="color: #fff;">¥${open.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+                            <span>close:</span>
+                            <span style="color: #fff;">¥${close.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+                            <span>hign:</span>
+                            <span style="color: #fff;">¥${high.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+                            <span>low:</span>
+                            <span style="color: #fff;">¥${low.toFixed(2)}</span>
+                        </div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444; color: ${change >= 0 ? '#ef5350' : '#26a69a'};">
+                            ups and downs: ${changeSign}${change}%
+                        </div>
+                    </div>
+                `;
+            }
+        },
+        grid: [
+            {
+                left: '10%',
+                right: '10%',
+                top: '10%',
+                height: '55%'
+            },
+            {
+                left: '10%',
+                right: '10%',
+                top: '70%',
+                height: '20%'
+            }
+        ],
+        xAxis: [
+            {
+                type: 'category',
+                data: dates,
+                scale: true,
+                boundaryGap: false,
+                axisLine: {
+                    onZero: false,
+                    lineStyle: {
+                        color: '#94a3b8'
+                    }
+                },
+                axisLabel: {
+                    color: '#94a3b8',
+                    fontSize: 10
+                },
+                splitLine: {
+                    show: false
+                },
+                min: 'dataMin',
+                max: 'dataMax'
+            },
+            {
+                type: 'category',
+                gridIndex: 1,
+                data: dates,
+                scale: true,
+                boundaryGap: false,
+                axisLine: {
+                    onZero: false,
+                    lineStyle: {
+                        color: '#94a3b8'
+                    }
+                },
+                axisTick: {
+                    show: false
+                },
+                splitLine: {
+                    show: false
+                },
+                axisLabel: {
+                    show: false
+                },
+                min: 'dataMin',
+                max: 'dataMax'
+            }
+        ],
+        yAxis: [
+            {
+                scale: true,
+                splitArea: {
+                    show: true,
+                    areaStyle: {
+                        color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.05)']
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#94a3b8'
+                    }
+                },
+                axisLabel: {
+                    color: '#94a3b8',
+                    formatter: '¥{value}'
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.08)'
+                    }
+                }
+            },
+            {
+                scale: true,
+                gridIndex: 1,
+                splitNumber: 2,
+                axisLabel: {
+                    show: false
+                },
+                axisLine: {
+                    show: false
+                },
+                axisTick: {
+                    show: false
+                },
+                splitLine: {
+                    show: false
+                }
+            }
+        ],
+        dataZoom: [
+            {
+                type: 'inside',
+                xAxisIndex: [0, 1],
+                start: 50,
+                end: 100
+            },
+            {
+                show: true,
+                xAxisIndex: [0, 1],
+                type: 'slider',
+                top: '92%',
+                start: 50,
+                end: 100,
+                borderColor: '#444',
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                fillerColor: 'rgba(100, 150, 255, 0.2)',
+                textStyle: {
+                    color: '#94a3b8'
+                }
+            }
+        ],
+        series: [
+            {
+                name: 'K-line',
+                type: 'candlestick',
+                data: data,
+                itemStyle: {
+                    color: '#ef5350',      // 阳线 (上涨) - 红色
+                    color0: '#26a69a',    // 阴线 (下跌) - 绿色
+                    borderColor: '#ef5350',
+                    borderColor0: '#26a69a'
+                },
+                markLine: {
+                    data: [
+                        { type: 'average', name: 'MA' }
+                    ]
+                }
+            },
+            {
+                name: 'MA5',
+                type: 'line',
+                data: calculateMA(5, stockInfo.priceHistory),
+                smooth: true,
+                lineStyle: {
+                    opacity: 0.8,
+                    width: 1,
+                    color: '#f39c12'
+                },
+                symbol: 'none'
+            },
+            {
+                name: 'MA10',
+                type: 'line',
+                data: calculateMA(10, stockInfo.priceHistory),
+                smooth: true,
+                lineStyle: {
+                    opacity: 0.8,
+                    width: 1,
+                    color: '#3498db'
+                },
+                symbol: 'none'
+            },
+            {
+                name: 'MA20',
+                type: 'line',
+                data: calculateMA(20, stockInfo.priceHistory),
+                smooth: true,
+                lineStyle: {
+                    opacity: 0.8,
+                    width: 1,
+                    color: '#9b59b6'
+                },
+                symbol: 'none'
+            },
+            {
+                name: 'Volume',
+                type: 'bar',
+                xAxisIndex: 1,
+                yAxisIndex: 1,
+                data: volumes,
+                itemStyle: {
+                    borderRadius: 2
+                }
+            }
+        ]
+    };
+
+    candlestickChart.setOption(option);
+
+    // Resize chart on window resize
+    window.addEventListener('resize', function() {
+        if (candlestickChart) {
+            candlestickChart.resize();
+        }
+    });
+}
+
+// Calculate Moving Average
+function calculateMA(dayCount, data) {
+    var result = [];
+    for (var i = 0, len = data.length; i < len; i++) {
+        if (i < dayCount) {
+            result.push('-');
+            continue;
+        }
+        var sum = 0;
+        for (var j = 0; j < dayCount; j++) {
+            // Extract numeric value from price
+            var priceValue = data[i - j].price;
+            if (typeof priceValue === 'object' && priceValue.toFixed) {
+                sum += parseFloat(priceValue.toFixed(2));
+            } else {
+                sum += parseFloat(priceValue);
+            }
+        }
+        result.push((sum / dayCount).toFixed(2));
+    }
+    return result;
 }
 
 // Close Stock Analysis Modal

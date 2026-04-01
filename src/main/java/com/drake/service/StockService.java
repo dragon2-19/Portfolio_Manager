@@ -32,9 +32,9 @@ public class StockService {
             // 使用新浪财经API获取实时数据
             StockInfo stockInfo = trySinaApi(ticker, sinaCode);
 
-            // 获取K线数据（默认30天）
+            // 获取K线数据（默认30天，包含开盘价、最高价、最低价）
             if (stockInfo != null && stockInfo.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0) {
-                List<StockInfo.PriceHistoryPoint> history = getKlineData(sinaCode, 30);
+                List<StockInfo.PriceHistoryPoint> history = getKlineDataWithOpen(sinaCode, 30);
                 stockInfo.setPriceHistory(history);
             }
 
@@ -134,10 +134,10 @@ public class StockService {
             // 使用新浪财经API获取实时数据
             StockInfo stockInfo = trySinaApi(ticker, sinaCode);
 
-            // 根据range参数获取不同天数的K线数据
+            // 根据range参数获取不同天数的K线数据（包含开盘价、最高价、最低价）
             int days = parseRangeToDays(range);
             if (stockInfo != null && stockInfo.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0) {
-                List<StockInfo.PriceHistoryPoint> history = getKlineData(sinaCode, days);
+                List<StockInfo.PriceHistoryPoint> history = getKlineDataWithOpen(sinaCode, days);
                 stockInfo.setPriceHistory(history);
             }
 
