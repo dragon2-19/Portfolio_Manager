@@ -147,7 +147,7 @@ Provide specific, actionable risk management strategies.`,
     strategy: `Based on my current portfolio and investment goals, please suggest a personalized investment strategy:
 
 My Current Portfolio:
-[PORTFOLIA_DATA_WILL_BE_INSERTED]
+[PORTFOLIO_DATA_WILL_BE_INSERTED]
 
 Please provide:
 1. Recommended asset allocation adjustments
@@ -456,8 +456,7 @@ async function useTemplate(templateKey) {
         // For templates that need portfolio data
         if (['portfolio', 'risk', 'strategy'].includes(templateKey)) {
             const portfolioData = await fetchPortfolioForTemplate();
-            processedTemplate = template.replace('[PORTFOLIA_DATA_WILL_BE_INSERTED]', portfolioData);
-            processedTemplate = processedTemplate.replace('[PORTFOLIO_DATA_WILL_BE_INSERTED]', portfolioData);
+            processedTemplate = template.replace('[PORTFOLIO_DATA_WILL_BE_INSERTED]', portfolioData);
         }
         
         // For market trend template

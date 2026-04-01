@@ -11,8 +11,8 @@ console.log('TRANSACTIONS_API:', TRANSACTIONS_API);
 
 // Format currency
 function formatCurrency(value) {
-    if (value === null || value === undefined || isNaN(value)) return '$0.00';
-    return '$' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    if (value === null || value === undefined || isNaN(value)) return '¥0.00';
+    return '¥' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }
 
 // Format percentage
@@ -27,7 +27,7 @@ function formatPercentage(value) {
 function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
@@ -38,7 +38,7 @@ function formatDate(dateStr) {
 function formatDateTime(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',

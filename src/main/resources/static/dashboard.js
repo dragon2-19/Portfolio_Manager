@@ -1,6 +1,12 @@
 let assetTypeChart = null;
 let portfolioDistributionChart = null;
+let dailyProfitChart = null;
 let currentStockInfo = null;
+
+// Configure Chart.js global defaults
+Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
 
 // Load dashboard on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,7 +19,8 @@ async function loadDashboard() {
         await Promise.all([
             loadSummary(),
             loadHoldingsOverview(),
-            loadRecentTransactions()
+            loadRecentTransactions(),
+            loadDailyProfitChart()
         ]);
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -205,6 +212,213 @@ function updateAssetTypeChart(summary) {
                 }
             },
             cutout: '60%'
+        }
+    });
+}
+
+// ==================== Daily Profit Chart ====================
+
+// Load daily profit chart
+async function loadDailyProfitChart() {
+    try {
+        const response = await fetch(HOLDINGS_API);
+        const holdings = await response.json();
+
+        if (holdings.length === 0) {
+            console.log('No holdings to calculate daily profit');
+            return;
+        }
+
+        // Get all stock holdings (exclude cash)
+        const stockHoldings = holdings.filter(h => h.assetType === 'STOCK');
+
+        if (stockHoldings.length === 0) {
+            console.log('No stock holdings to calculate daily profit');
+            return;
+        }
+
+        // Calculate daily profit
+        const dailyProfitData = await calculateDailyProfit(stockHoldings);
+
+        // Update the chart
+        updateDailyProfitChart(dailyProfitData);
+    } catch (error) {
+        console.error('Error loading daily profit chart:', error);
+    }
+}
+
+// Calculate daily profit for all holdings
+async function calculateDailyProfit(holdings) {
+    console.log('Calculating daily profit for', holdings.length, 'holdings');
+
+    // Get all purchase dates to determine date range
+    const purchaseDates = holdings.map(h => new Date(h.purchaseDate));
+    const minDate = new Date(Math.min(...purchaseDates));
+    const today = new Date();
+
+    // Limit date range to avoid too many data points (max 180 days)
+    const maxDays = 180;
+    const daysDiff = Math.floor((today - minDate) / (1000 * 60 * 60 * 24));
+
+    const startDate = daysDiff > maxDays ?
+        new Date(today.getTime() - maxDays * 24 * 60 * 60 * 1000) : minDate;
+
+    // Generate date range from startDate to today
+    const dateRange = [];
+    let currentDate = new Date(startDate);
+
+    while (currentDate <= today) {
+        dateRange.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    console.log('Date range:', dateRange.length, 'days from', dateRange[0], 'to', dateRange[dateRange.length - 1]);
+
+    // Initialize daily profit map (date -> total profit)
+    const dailyProfitMap = {};
+    dateRange.forEach(date => {
+        dailyProfitMap[date] = 0;
+    });
+
+    // For each holding, fetch historical prices and calculate daily profit
+    for (const holding of holdings) {
+        try {
+            console.log(`Fetching history for ${holding.ticker}...`);
+            // Fetch historical data (use 6mo range which should cover most cases)
+            const response = await fetch(`${STOCKS_API}/${holding.ticker}/history?range=6mo`);
+            const stockData = await response.json();
+
+            if (!stockData.priceHistory || stockData.priceHistory.length === 0) {
+                console.warn(`No price history for ${holding.ticker}`);
+                continue;
+            }
+
+            const purchaseDateStr = holding.purchaseDate;
+            const avgCost = holding.purchasePrice;
+            const volume = holding.volume;
+
+            // Calculate daily profit for this holding
+            let profitCount = 0;
+            stockData.priceHistory.forEach(pricePoint => {
+                const priceDate = pricePoint.date;
+
+                // Only calculate if price date is on or after purchase date
+                if (priceDate >= purchaseDateStr && dailyProfitMap.hasOwnProperty(priceDate)) {
+                    const dailyProfit = (pricePoint.price - avgCost) * volume;
+                    dailyProfitMap[priceDate] += dailyProfit;
+                    profitCount++;
+                }
+            });
+
+            console.log(`Calculated ${profitCount} profit points for ${holding.ticker}`);
+
+        } catch (error) {
+            console.error(`Error fetching history for ${holding.ticker}:`, error);
+        }
+    }
+
+    // Convert to arrays for Chart.js
+    const labels = dateRange;
+    const data = dateRange.map(date => dailyProfitMap[date] || 0);
+
+    console.log('Daily profit calculation completed. Data points:', data.length);
+
+    return { labels, data };
+}
+
+// Update daily profit chart
+function updateDailyProfitChart(dailyProfitData) {
+    const canvas = document.getElementById('dailyProfitChart');
+    if (!canvas) {
+        console.error('Daily profit chart canvas not found');
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    if (dailyProfitChart) {
+        dailyProfitChart.destroy();
+    }
+
+    // Determine color based on overall profit trend
+    const firstProfit = dailyProfitData.data[0] || 0;
+    const lastProfit = dailyProfitData.data[dailyProfitData.data.length - 1] || 0;
+    const isProfitable = lastProfit >= 0;
+    const isGrowing = lastProfit >= firstProfit;
+
+    // Use red for profit/growing, green for loss/declining (Chinese stock market convention)
+    const lineColor = '#667eea'; // Blue for neutral
+    const areaColor = isProfitable ? 'rgba(244, 67, 54, 0.15)' : 'rgba(76, 175, 80, 0.15)';
+
+    dailyProfitChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dailyProfitData.labels,
+            datasets: [{
+                label: 'Daily Profit (¥)',
+                data: dailyProfitData.data,
+                borderColor: lineColor,
+                backgroundColor: areaColor,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: function(context) {
+                            return 'date: ' + context[0].label;
+                        },
+                        label: function(context) {
+                            const value = context.raw;
+                            return 'Accumulated Profit: ¥' + value.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 12,
+                        color: '#94a3b8'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '¥' + value.toFixed(0);
+                        },
+                        color: '#94a3b8'
+                    }
+                }
+            }
         }
     });
 }

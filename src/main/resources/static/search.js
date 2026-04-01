@@ -6,6 +6,11 @@ let shChart = null;
 let szChart = null;
 let cybChart = null;
 
+// Configure Chart.js global defaults
+Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
 // Handle search key press
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
@@ -21,20 +26,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Initialize market overview
 async function initMarketOverview() {
     try {
+        console.log('Initializing market overview...');
+
         // Load data for Shanghai Composite (000001)
         const shResponse = await fetch(`${STOCKS_API}/000001/history?range=3mo`);
         const shData = await shResponse.json();
+        console.log('Shanghai Composite data loaded:', shData);
         initChart('shChart', '上证指数', shData, '#667eea');
 
         // Load data for Shenzhen Component (399001)
         const szResponse = await fetch(`${STOCKS_API}/399001/history?range=3mo`);
         const szData = await szResponse.json();
+        console.log('Shenzhen Component data loaded:', szData);
         initChart('szChart', '深证成指', szData, '#764ba2');
 
         // Load data for ChiNext Index (399006)
         const cybResponse = await fetch(`${STOCKS_API}/399006/history?range=3mo`);
         const cybData = await cybResponse.json();
+        console.log('ChiNext Index data loaded:', cybData);
         initChart('cybChart', '创业板指', cybData, '#f093fb');
+
+        console.log('Market overview initialized successfully');
     } catch (error) {
         console.error('Error initializing market overview:', error);
     }
@@ -71,7 +83,13 @@ function showMarketOverview() {
 
 // Initialize a single market chart
 function initChart(canvasId, label, stockInfo, color) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error('Canvas element not found:', canvasId);
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
 
     if (!stockInfo.priceHistory || stockInfo.priceHistory.length === 0) {
         return;
@@ -129,22 +147,23 @@ function initChart(canvasId, label, stockInfo, color) {
             scales: {
                 x: {
                     grid: {
-                        display: false
+                        display: false,
+                        color: '#666'
                     },
                     ticks: {
                         maxTicksLimit: 8,
-                        color: '#666'
+                        color: '#94a3b8'
                     }
                 },
                 y: {
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
+                        color: 'rgba(255, 255, 255, 0.05)'
                     },
                     ticks: {
                         callback: function(value) {
                             return value.toFixed(0);
                         },
-                        color: '#666'
+                        color: '#94a3b8'
                     }
                 }
             }
@@ -268,7 +287,13 @@ async function displayStockDetails(stockInfo) {
 
 // Update price chart (only price line, no volume)
 function updatePriceChart(stockInfo) {
-    const ctx = document.getElementById('priceChart').getContext('2d');
+    const canvas = document.getElementById('priceChart');
+    if (!canvas) {
+        console.error('Price chart canvas not found');
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
 
     if (priceChart) {
         priceChart.destroy();
@@ -339,22 +364,23 @@ function updatePriceChart(stockInfo) {
             scales: {
                 x: {
                     grid: {
-                        display: false
+                        display: false,
+                        color: '#94a3b8'
                     },
                     ticks: {
                         maxTicksLimit: 10,
-                        color: '#666'
+                        color: '#94a3b8'
                     }
                 },
                 y: {
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
+                        color: 'rgba(255, 255, 255, 0.05)'
                     },
                     ticks: {
                         callback: function(value) {
                             return '¥' + value.toFixed(2);
                         },
-                        color: '#666'
+                        color: '#94a3b8'
                     }
                 }
             }
@@ -468,7 +494,7 @@ async function addToPortfolio(event) {
             ticker: 'CASH',
             stockName: 'Cash',
             assetType: 'CASH',
-            volume: volume,
+            volume: lots * 100,  // Convert lots to shares
             purchasePrice: 1,
             currentPrice: 1,
             purchaseDate: document.getElementById('addToPortfolioDate').value

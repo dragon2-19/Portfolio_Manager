@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio - Transactions</title>
+    <title>Portfolio Pro - Transactions</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        <!-- Glassmorphism Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2>📊 Portfolio</h2>
+                <h2>📊 Portfolio Pro</h2>
             </div>
             <ul class="sidebar-menu">
                 <li>
@@ -45,7 +48,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <h1>Transactions</h1>
+                <h1>Transaction History</h1>
                 <div class="header-actions">
                     <button class="btn btn-secondary" onclick="refreshTransactions()">
                         🔄 Refresh
@@ -76,14 +79,14 @@
                         <div class="stat-value" id="sellCount">0</div>
                     </div>
                 </div>
-                <div class="stat-card deposit">
+                <div class="stat-card total-amount">
                     <div class="stat-icon">💰</div>
                     <div class="stat-info">
                         <div class="stat-label">Deposits</div>
                         <div class="stat-value" id="depositCount">0</div>
                     </div>
                 </div>
-                <div class="stat-card withdraw">
+                <div class="stat-card bond">
                     <div class="stat-icon">💵</div>
                     <div class="stat-info">
                         <div class="stat-label">Withdrawals</div>
