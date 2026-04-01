@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Pro - Intelligent Investment Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1229 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 3D K线背景 */
+        .kline-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .kline-container {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            padding: 0 50px;
+            animation: klineWave 20s linear infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes klineWave {
+            0% {
+                transform: translateX(0) rotateX(10deg) translateZ(0);
+            }
+            100% {
+                transform: translateX(-50%) rotateX(10deg) translateZ(0);
+            }
+        }
+
+        .kline-candle {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform-style: preserve-3d;
+            animation: candleFloat 3s ease-in-out infinite;
+        }
+
+        .kline-candle:nth-child(odd) {
+            animation-delay: 0s;
+        }
+
+        .kline-candle:nth-child(even) {
+            animation-delay: 1.5s;
+        }
+
+        @keyframes candleFloat {
+            0%, 100% {
+                transform: translateY(0) translateZ(0);
+            }
+            50% {
+                transform: translateY(-15px) translateZ(20px);
+            }
+        }
+
+        .candle-wick {
+            width: 3px;
+            position: absolute;
+            filter: drop-shadow(0 0 10px currentColor);
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .candle-body {
+            width: 100%;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            position: absolute;
+            transform: translateZ(0);
+            box-shadow: 
+                0 0 20px currentColor,
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .candle-body.bullish {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 
+                0 0 20px rgba(239, 68, 68, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                0 0 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .candle-body.bearish {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 
+                0 0 20px rgba(34, 197, 94, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                0 0 40px rgba(34, 197, 94, 0.4);
+        }
+
+        .kline-candle:nth-child(odd) .candle-wick {
+            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+        }
+
+        .kline-candle:nth-child(even) .candle-wick {
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+        }
+
+        /* K线尺寸 - 波浪形 */
+        .kline-candle:nth-child(1) { height: 180px; }
+        .kline-candle:nth-child(1) .candle-wick { height: 40px; top: -20px; }
+        .kline-candle:nth-child(1) .candle-body { height: 100px; bottom: 40px; }
+
+        .kline-candle:nth-child(2) { height: 220px; }
+        .kline-candle:nth-child(2) .candle-wick { height: 50px; top: -25px; }
+        .kline-candle:nth-child(2) .candle-body { height: 120px; top: 40px; }
+
+        .kline-candle:nth-child(3) { height: 170px; }
+        .kline-candle:nth-child(3) .candle-wick { height: 35px; top: -17px; }
+        .kline-candle:nth-child(3) .candle-body { height: 90px; bottom: 45px; }
+
+        .kline-candle:nth-child(4) { height: 240px; }
+        .kline-candle:nth-child(4) .candle-wick { height: 60px; top: -30px; }
+        .kline-candle:nth-child(4) .candle-body { height: 140px; bottom: 20px; }
+
+        .kline-candle:nth-child(5) { height: 200px; }
+        .kline-candle:nth-child(5) .candle-wick { height: 45px; top: -22px; }
+        .kline-candle:nth-child(5) .candle-body { height: 110px; top: 35px; }
+
+        .kline-candle:nth-child(6) { height: 190px; }
+        .kline-candle:nth-child(6) .candle-wick { height: 55px; top: -27px; }
+        .kline-candle:nth-child(6) .candle-body { height: 150px; top: 35px; }
+
+        .kline-candle:nth-child(7) { height: 260px; }
+        .kline-candle:nth-child(7) .candle-wick { height: 40px; top: -20px; }
+        .kline-candle:nth-child(7) .candle-body { height: 130px; bottom: 40px; }
+
+        .kline-candle:nth-child(8) { height: 180px; }
+        .kline-candle:nth-child(8) .candle-wick { height: 45px; top: -22px; }
+        .kline-candle:nth-child(8) .candle-body { height: 115px; top: 35px; }
+
+        .kline-candle:nth-child(9) { height: 230px; }
+        .kline-candle:nth-child(9) .candle-wick { height: 50px; top: -25px; }
+        .kline-candle:nth-child(9) .candle-body { height: 140px; bottom: 40px; }
+
+        .kline-candle:nth-child(10) { height: 200px; }
+        .kline-candle:nth-child(10) .candle-wick { height: 40px; top: -20px; }
+        .kline-candle:nth-child(10) .candle-body { height: 120px; bottom: 40px; }
+
+        .kline-candle:nth-child(11) { height: 170px; }
+        .kline-candle:nth-child(11) .candle-wick { height: 45px; top: -22px; }
+        .kline-candle:nth-child(11) .candle-body { height: 100px; bottom: 45px; }
+
+        .kline-candle:nth-child(12) { height: 210px; }
+        .kline-candle:nth-child(12) .candle-wick { height: 50px; top: -25px; }
+        .kline-candle:nth-child(12) .candle-body { height: 120px; top: 40px; }
+
+        .kline-candle:nth-child(13) { height: 190px; }
+        .kline-candle:nth-child(13) .candle-wick { height: 35px; top: -17px; }
+        .kline-candle:nth-child(13) .candle-body { height: 90px; bottom: 45px; }
+
+        .kline-candle:nth-child(14) { height: 230px; }
+        .kline-candle:nth-child(14) .candle-wick { height: 55px; top: -27px; }
+        .kline-candle:nth-child(14) .candle-body { height: 140px; bottom: 20px; }
+
+        .kline-candle:nth-child(15) { height: 200px; }
+        .kline-candle:nth-child(15) .candle-wick { height: 45px; top: -22px; }
+        .kline-candle:nth-child(15) .candle-body { height: 110px; top: 35px; }
+
+        .kline-candle:nth-child(16) { height: 180px; }
+        .kline-candle:nth-child(16) .candle-wick { height: 40px; top: -20px; }
+        .kline-candle:nth-child(16) .candle-body { height: 100px; bottom: 40px; }
+
+        .kline-candle:nth-child(17) { height: 220px; }
+        .kline-candle:nth-child(17) .candle-wick { height: 50px; top: -25px; }
+        .kline-candle:nth-child(17) .candle-body { height: 120px; top: 40px; }
+
+        .kline-candle:nth-child(18) { height: 170px; }
+        .kline-candle:nth-child(18) .candle-wick { height: 35px; top: -17px; }
+        .kline-candle:nth-child(18) .candle-body { height: 90px; bottom: 45px; }
+
+        .kline-candle:nth-child(19) { height: 240px; }
+        .kline-candle:nth-child(19) .candle-wick { height: 60px; top: -30px; }
+        .kline-candle:nth-child(19) .candle-body { height: 140px; bottom: 20px; }
+
+        .kline-candle:nth-child(20) { height: 200px; }
+        .kline-candle:nth-child(20) .candle-wick { height: 45px; top: -22px; }
+        .kline-candle:nth-child(20) .candle-body { height: 110px; top: 35px; }
+
+        /* 网格线 */
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        .grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+        }
+
+        .grid-line:nth-child(1) { top: 20%; }
+        .grid-line:nth-child(2) { top: 40%; }
+        .grid-line:nth-child(3) { top: 60%; }
+        .grid-line:nth-child(4) { top: 80%; }
+
+        /* 主容器 */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Logo */
+        .logo {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .logo-text {
+            font-size: 1.8em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        /* 中间内容 */
+        .center-content {
+            text-align: center;
+            animation: fadeInUp 1.2s ease both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .center-subtitle {
+            font-size: 1.8em;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: fadeInUp 1s ease 0.3s both;
+        }
+
+        .center-tagline {
+            font-size: 2.5em;
+            color: #cbd5e1;
+            margin-bottom: 60px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+            animation: fadeInUp 1s ease 0.5s both;
+        }
+
+        .start-btn {
+            padding: 25px 80px;
+            background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 1.5em;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 15px 50px rgba(102, 126, 234, 0.5),
+                0 0 60px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            display: inline-block;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease 0.7s both;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .start-btn:active::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 
+                0 25px 70px rgba(102, 126, 234, 0.7),
+                0 0 80px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .center-subtitle {
+                font-size: 1.5em;
+            }
+
+            .center-tagline {
+                font-size: 2em;
+                margin-bottom: 50px;
+            }
+
+            .start-btn {
+                padding: 20px 60px;
+                font-size: 1.3em;
+            }
+
+            .logo {
+                top: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 20px;
+            }
+
+            .logo-text {
+                font-size: 1.4em;
+            }
+
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4em;
+            }
+
+            .center-subtitle {
+                font-size: 1.2em;
+            }
+
+            .center-tagline {
+                font-size: 1.6em;
+                margin-bottom: 40px;
+            }
+
+            .start-btn {
+                padding: 18px 50px;
+                font-size: 1.1em;
+                width: 100%;
+            }
+
+            .kline-container {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .center-subtitle {
+                font-size: 1em;
+            }
+
+            .center-tagline {
+                font-size: 1.3em;
+                margin-bottom: 35px;
+                letter-spacing: 2px;
+            }
+
+            .start-btn {
+                padding: 16px 40px;
+                font-size: 1em;
+            }
+
+            .logo {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .kline-container {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D K线背景 -->
+    <div class="kline-background">
+        <div class="grid-lines">
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+        </div>
+        <div class="kline-container">
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bullish"></div>
+            </div>
+            <div class="kline-candle">
+                <div class="candle-wick"></div>
+                <div class="candle-body bearish"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- Logo -->
+        <div class="logo">
+            <div class="logo-icon">📊</div>
+            <div class="logo-text">Portfolio Pro</div>
+        </div>
+
+        <!-- 中间内容 -->
+        <div class="center-content">
+            <p class="center-subtitle">Next-Generation Intelligent Investment Platform</p>
+            <p class="center-tagline">Master Your Investment Future</p>
+            <a href="dashboard.html" class="start-btn">START</a>
+        </div>
+    </div>
+</body>
+</html>
