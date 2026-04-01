@@ -1,3 +1,10 @@
+// Make functions globally accessible (ensure they work with onclick)
+window.loadTransactions = loadTransactions;
+window.deleteTransaction = deleteTransaction;
+window.refreshTransactions = refreshTransactions;
+
+console.log('transactions.js loaded - functions exported to window');
+
 // Load transactions on page load
 document.addEventListener('DOMContentLoaded', () => {
     loadTransactions();
@@ -12,6 +19,26 @@ async function loadTransactions() {
         updateTransactionStats(transactions);
     } catch (error) {
         console.error('Error loading transactions:', error);
+        alert('Failed to load transactions, please check if the backend service is running');
+    }
+}
+
+// Refresh transactions (reloads data from backend)
+async function refreshTransactions() {
+    console.log('Refreshing transactions...');
+    try {
+        const response = await fetch(TRANSACTIONS_API);
+        if (!response.ok) {
+            throw new Error('Failed to load transactions data');
+        }
+        const transactions = await response.json();
+        displayTransactions(transactions);
+        updateTransactionStats(transactions);
+        console.log('✓ Transactions refreshed successfully');
+        alert('✅ Refresh successful! Transactions data has been updated.');
+    } catch (error) {
+        console.error('Error refreshing transactions:', error);
+        alert('Refresh failed, please check network connection and backend service');
     }
 }
 
@@ -25,7 +52,10 @@ function displayTransactions(transactions) {
         return;
     }
 
-    transactions.forEach(transaction => {
+    // Reverse to show newest first
+    const reversedTransactions = [...transactions].reverse();
+
+    reversedTransactions.forEach((transaction, index) => {
         let typeClass, typeIcon, typeText;
 
         switch (transaction.transactionType) {
@@ -60,7 +90,7 @@ function displayTransactions(transactions) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${transaction.id}</td>
+            <td>${index + 1}</td>
             <td><strong>${transaction.ticker || '-'}</strong></td>
             <td>${transaction.stockName || '-'}</td>
             <td><span class="badge ${typeClass}">${typeIcon} ${typeText}</span></td>

@@ -126,7 +126,9 @@ async function loadRecentTransactions() {
             return;
         }
 
-        transactions.slice(0, 5).forEach(transaction => {
+        // Reverse to show newest first, then take top 5
+        const reversedTransactions = [...transactions].reverse();
+        reversedTransactions.slice(0, 5).forEach(transaction => {
             const item = createTransactionItem(transaction);
             list.appendChild(item);
         });

@@ -79,6 +79,25 @@ public class StockService {
     }
 
     /**
+     * 获取股票实时价格
+     * @param ticker 股票代码
+     * @return 实时价格
+     */
+    public BigDecimal getCurrentPrice(String ticker) {
+        try {
+            String sinaCode = convertToSinaCode(ticker);
+            StockInfo stockInfo = trySinaApi(ticker, sinaCode);
+            if (stockInfo != null) {
+                System.out.println("DEBUG: Got stock info for " + ticker + ", current price: " + stockInfo.getCurrentPrice());
+                return stockInfo.getCurrentPrice();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching current price for " + ticker + ": " + e.getMessage());
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /**
      * 获取历史日期的开盘价
      * @param ticker 股票代码
      * @param date 日期，格式为 yyyy-MM-dd

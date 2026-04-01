@@ -23,6 +23,7 @@ window.validateBuyDate = validateBuyDate;
 window.validateSellDate = validateSellDate;
 window.validateBuyDateOnInput = validateBuyDateOnInput;
 window.validateSellDateOnInput = validateSellDateOnInput;
+window.refreshHoldings = refreshHoldings;
 
 console.log('holdings.js loaded - functions exported to window');
 
@@ -49,6 +50,45 @@ async function loadHoldings() {
     }
 }
 
+// Refresh holdings with price update
+async function refreshHoldings() {
+    console.log('Refreshing holdings with current price update...');
+
+    try {
+        // First, update all stock prices to current real-time price
+        console.log('Step 1: Updating all stock prices to current...');
+        const updateResponse = await fetch(`${HOLDINGS_API}/update-current-prices`, {
+            method: 'POST'
+        });
+
+        if (!updateResponse.ok) {
+            const errorText = await updateResponse.text();
+            console.error('Failed to update prices:', errorText);
+            alert('Warning: Failed to update stock prices. Loading existing data...');
+        } else {
+            console.log('✓ Prices updated to current successfully');
+        }
+
+        // Then, load holdings with updated prices
+        console.log('Step 2: Loading holdings data...');
+        const loadResponse = await fetch(HOLDINGS_API);
+
+        if (!loadResponse.ok) {
+            throw new Error('Failed to load holdings data');
+        }
+
+        const holdings = await loadResponse.json();
+        displayHoldings(holdings);
+        updateStats(holdings);
+
+        console.log('✓ Holdings refreshed successfully');
+        alert('✅ Refresh successful! All prices have been updated to current real-time prices.');
+    } catch (error) {
+        console.error('Error refreshing holdings:', error);
+        alert('Refresh failed, please check network connection and backend service');
+    }
+}
+
 // Load summary
 async function loadSummary() {
     try {
@@ -70,7 +110,10 @@ function displayHoldings(holdings) {
         return;
     }
 
-    holdings.forEach(holding => {
+    // Reverse to show newest first
+    const reversedHoldings = [...holdings].reverse();
+
+    reversedHoldings.forEach((holding, index) => {
         const badgeClass = getBadgeClass(holding.assetType);
         const profitLossClass = holding.profitLoss > 0 ? 'profit-positive' :
                                holding.profitLoss < 0 ? 'profit-negative' : 'profit-neutral';
@@ -84,7 +127,7 @@ function displayHoldings(holdings) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${holding.id}</td>
+            <td>${index + 1}</td>
             <td><strong>${holding.ticker}</strong></td>
             <td>${holding.stockName || '-'}</td>
             <td><span class="badge ${badgeClass}">${getAssetTypeName(holding.assetType)}</span></td>

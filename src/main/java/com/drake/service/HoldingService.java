@@ -374,6 +374,23 @@ public class HoldingService {
     }
 
     /**
+     * 更新持仓价格为实时价格
+     */
+    public Holding updateHoldingPriceToCurrent(Long id) {
+        return holdingRepository.findById(id).map(holding -> {
+            if ("STOCK".equals(holding.getAssetType()) || "BOND".equals(holding.getAssetType())) {
+                BigDecimal currentPrice = stockService.getCurrentPrice(holding.getTicker());
+                if (currentPrice.compareTo(BigDecimal.ZERO) > 0) {
+                    holding.setCurrentPrice(currentPrice);
+                    holding.setLastUpdated(java.time.LocalDateTime.now());
+                    return holdingRepository.save(holding);
+                }
+            }
+            return holding;
+        }).orElse(null);
+    }
+
+    /**
      * 更新所有股票/债券持仓价格为今日开盘价
      */
     public void updateAllStockPricesToTodayOpen() {
@@ -382,6 +399,22 @@ public class HoldingService {
             if ("STOCK".equals(holding.getAssetType()) || "BOND".equals(holding.getAssetType())) {
                 try {
                     updateHoldingPriceToTodayOpen(holding.getId());
+                } catch (Exception e) {
+                    System.err.println("Failed to update price for " + holding.getTicker() + ": " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * 更新所有股票/债券持仓价格为实时价格
+     */
+    public void updateAllStockPricesToCurrent() {
+        List<Holding> holdings = holdingRepository.findAll();
+        for (Holding holding : holdings) {
+            if ("STOCK".equals(holding.getAssetType()) || "BOND".equals(holding.getAssetType())) {
+                try {
+                    updateHoldingPriceToCurrent(holding.getId());
                 } catch (Exception e) {
                     System.err.println("Failed to update price for " + holding.getTicker() + ": " + e.getMessage());
                 }

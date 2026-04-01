@@ -125,6 +125,19 @@ public class HoldingController {
         }
     }
 
+    /**
+     * 更新所有股票/债券持仓价格为实时价格
+     */
+    @PostMapping("/update-current-prices")
+    public ResponseEntity<String> updateAllStockPricesToCurrent() {
+        try {
+            holdingService.updateAllStockPricesToCurrent();
+            return ResponseEntity.ok("All prices updated to current successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to update prices: " + e.getMessage());
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> createHolding(@RequestBody Holding holding) {
         try {
