@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - AI Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 Portfolio</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html" class="nav-link">
+                        <span>📈</span> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="holdings.html" class="nav-link">
+                        <span>💼</span> Holdings
+                    </a>
+                </li>
+                <li>
+                    <a href="transactions.html" class="nav-link">
+                        <span>📝</span> Transactions
+                    </a>
+                </li>
+                <li>
+                    <a href="search.html" class="nav-link">
+                        <span>🔍</span> Search
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="ai-assistant.html" class="nav-link">
+                        <span>🤖</span> AI Assistant
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>🤖 AI Assistant</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="openApiConfigModal()">
+                        ⚙️ API Config
+                    </button>
+                    <button class="btn btn-info" onclick="clearChat()">
+                        🗑️ Clear Chat
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Container -->
+            <section class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🤖</div>
+                        <h2>Welcome to AI Assistant</h2>
+                        <p>I'm here to help you with investment questions. You can:</p>
+                        <ul>
+                            <li>Ask about stock analysis and market trends</li>
+                            <li>Get investment advice and portfolio suggestions</li>
+                            <li>Learn about financial concepts and strategies</li>
+                            <li>Use the preset templates below for quick queries</li>
+                        </ul>
+                        <p class="note">Please configure your DeepSeek API key to get started.</p>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
+                            rows="1"
+                            onkeydown="handleKeyDown(event)"
+                            oninput="autoResize(this)"
+                        ></textarea>
+                        <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+                            <span>Send</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Prompt Templates -->
+            <section class="prompt-templates">
+                <h3>💡 Quick Prompt Templates</h3>
+                <div class="templates-grid">
+                    <div class="template-card" onclick="useTemplate('analysis')">
+                        <div class="template-icon">📊</div>
+                        <div class="template-title">Stock Analysis</div>
+                        <div class="template-desc">Analyze a stock's fundamentals and technical indicators</div>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('portfolio')">
+                        <div class="template-icon">💼</div>
+                        <div class="template-title">Portfolio Review</div>
+                        <div class="template-desc">Get portfolio diversification and risk assessment</div>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('market')">
+                        <div class="template-icon">📈</div>
+                        <div class="template-title">Market Trends</div>
+                        <div class="template-desc">Current market trends and sector analysis</div>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('risk')">
+                        <div class="template-icon">⚠️</div>
+                        <div class="template-title">Risk Management</div>
+                        <div class="template-desc">Risk assessment and mitigation strategies</div>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('strategy')">
+                        <div class="template-icon">🎯</div>
+                        <div class="template-title">Investment Strategy</div>
+                        <div class="template-desc">Personalized investment strategy suggestions</div>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('education')">
+                        <div class="template-icon">📚</div>
+                        <div class="template-title">Financial Education</div>
+                        <div class="template-desc">Learn about financial concepts and terms</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- API Config Modal -->
+    <div id="apiConfigModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeApiConfigModal()">&times;</span>
+            <h2>⚙️ DeepSeek API Configuration</h2>
+            <form id="apiConfigForm" onsubmit="saveApiConfig(event)">
+                <div class="form-group">
+                    <label for="apiKey">API Key:</label>
+                    <input type="password" id="apiKey" required placeholder="Enter your DeepSeek API key">
+                    <small class="info-text">Get your API key from <a href="https://platform.deepseek.com/" target="_blank">DeepSeek Platform</a></small>
+                </div>
+                <div class="form-group">
+                    <label for="model">Model:</label>
+                    <select id="model" required>
+                        <option value="deepseek-chat">DeepSeek Chat (default)</option>
+                        <option value="deepseek-coder">DeepSeek Coder</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="temperature">Temperature (0-2):</label>
+                    <input type="number" id="temperature" min="0" max="2" step="0.1" value="0.7" required>
+                    <small class="info-text">Lower = more focused, Higher = more creative</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Configuration</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="ai-assistant.js"></script>
+</body>
+</html>
