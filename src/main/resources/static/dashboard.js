@@ -296,9 +296,12 @@ async function calculateDailyProfit(holdings) {
             const purchaseDateStr = holding.purchaseDate;
             const avgCost = holding.purchasePrice;
             const volume = holding.volume;
+            const currentPrice = holding.currentPrice;
 
             // Calculate daily profit for this holding
             let profitCount = 0;
+            const todayStr = today.toISOString().split('T')[0];
+
             stockData.priceHistory.forEach(pricePoint => {
                 const priceDate = pricePoint.date;
 
@@ -309,6 +312,13 @@ async function calculateDailyProfit(holdings) {
                     profitCount++;
                 }
             });
+
+            // For today, use current actual price instead of closing price
+            if (currentPrice && dailyProfitMap.hasOwnProperty(todayStr) && todayStr >= purchaseDateStr) {
+                const todayProfit = (currentPrice - avgCost) * volume;
+                dailyProfitMap[todayStr] += todayProfit;
+                console.log(`Today's profit for ${holding.ticker}: ¥${todayProfit.toFixed(2)} (using current price: ¥${currentPrice})`);
+            }
 
             console.log(`Calculated ${profitCount} profit points for ${holding.ticker}`);
 
