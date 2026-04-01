@@ -107,7 +107,7 @@ public class StockService {
      * @param date 日期，格式为 yyyy-MM-dd
      * @return 开盘价
      */
-    @Cacheable(value = "historicalOpenPrice", key = "#ticker + '_' + #date", unless = "#result == null || #result.compareTo(BigDecimal.ZERO) == 0")
+    @Cacheable(value = "historicalOpenPrice", key = "#ticker + '_' + #date", unless = "#result.compareTo(BigDecimal.ZERO) == 0")
     public BigDecimal getHistoricalOpenPrice(String ticker, String date) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -132,7 +132,7 @@ public class StockService {
         }
     }
 
-    @Cacheable(value = "stockWithHistory", key = "#ticker + '_' + #range", unless = "#result == null || #result.currentPrice.compareTo(BigDecimal.ZERO) == 0")
+    @Cacheable(value = "stockWithHistory", key = "#ticker + '_' + #range", unless = "#result.currentPrice.compareTo(BigDecimal.ZERO) == 0")
     public StockInfo getStockInfoWithHistory(String ticker, String range) {
         try {
             String sinaCode = convertToSinaCode(ticker);
