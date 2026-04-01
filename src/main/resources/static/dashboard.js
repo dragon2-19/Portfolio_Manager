@@ -263,22 +263,9 @@ async function calculateDailyProfit(holdings) {
     const startDate = daysDiff > maxDays ?
         new Date(today.getTime() - maxDays * 24 * 60 * 60 * 1000) : minDate;
 
-    // Generate date range from startDate to today
-    const dateRange = [];
-    let currentDate = new Date(startDate);
-
-    while (currentDate <= today) {
-        dateRange.push(currentDate.toISOString().split('T')[0]);
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    console.log('Date range:', dateRange.length, 'days from', dateRange[0], 'to', dateRange[dateRange.length - 1]);
-
     // Initialize daily profit map (date -> total profit)
     const dailyProfitMap = {};
-    dateRange.forEach(date => {
-        dailyProfitMap[date] = 0;
-    });
+    const allTradingDates = new Set(); // Use Set to avoid duplicates
 
     // For each holding, fetch historical prices and calculate daily profit
     for (const holding of holdings) {
@@ -305,17 +292,26 @@ async function calculateDailyProfit(holdings) {
             stockData.priceHistory.forEach(pricePoint => {
                 const priceDate = pricePoint.date;
 
-                // Only calculate if price date is on or after purchase date
-                if (priceDate >= purchaseDateStr && dailyProfitMap.hasOwnProperty(priceDate)) {
+                // Only calculate if price date is on or after purchase date and within range
+                if (priceDate >= purchaseDateStr && priceDate >= startDate.toISOString().split('T')[0] &&
+                    priceDate <= today.toISOString().split('T')[0]) {
                     const dailyProfit = (pricePoint.price - avgCost) * volume;
+                    if (!dailyProfitMap[priceDate]) {
+                        dailyProfitMap[priceDate] = 0;
+                        allTradingDates.add(priceDate);
+                    }
                     dailyProfitMap[priceDate] += dailyProfit;
                     profitCount++;
                 }
             });
 
             // For today, use current actual price instead of closing price
-            if (currentPrice && dailyProfitMap.hasOwnProperty(todayStr) && todayStr >= purchaseDateStr) {
+            if (currentPrice && todayStr >= purchaseDateStr) {
                 const todayProfit = (currentPrice - avgCost) * volume;
+                if (!dailyProfitMap[todayStr]) {
+                    dailyProfitMap[todayStr] = 0;
+                    allTradingDates.add(todayStr);
+                }
                 dailyProfitMap[todayStr] += todayProfit;
                 console.log(`Today's profit for ${holding.ticker}: ¥${todayProfit.toFixed(2)} (using current price: ¥${currentPrice})`);
             }
@@ -327,9 +323,14 @@ async function calculateDailyProfit(holdings) {
         }
     }
 
+    // Sort trading dates chronologically
+    const sortedDates = Array.from(allTradingDates).sort();
+
+    console.log('Trading days:', sortedDates.length, 'from', sortedDates[0], 'to', sortedDates[sortedDates.length - 1]);
+
     // Convert to arrays for Chart.js
-    const labels = dateRange;
-    const data = dateRange.map(date => dailyProfitMap[date] || 0);
+    const labels = sortedDates;
+    const data = sortedDates.map(date => dailyProfitMap[date] || 0);
 
     console.log('Daily profit calculation completed. Data points:', data.length);
 
