@@ -11,25 +11,31 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Transactional(readOnly = true)
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByHoldingId(Long holdingId) {
         return transactionRepository.findByHoldingIdOrderByTransactionDateDesc(holdingId);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Transaction> getTransactionById(Long id) {
         return transactionRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public Transaction createTransaction(Transaction transaction) {
         if (transaction.getTransactionDate() == null) {
             transaction.setTransactionDate(LocalDateTime.now());
