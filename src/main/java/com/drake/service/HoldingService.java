@@ -16,8 +16,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class HoldingService {
 
     @Autowired
@@ -32,14 +34,17 @@ public class HoldingService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Transactional(readOnly = true)
     public List<Holding> getAllHoldings() {
         return holdingRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Holding> getHoldingById(Long id) {
         return holdingRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Holding> getHoldingsByAssetType(String assetType) {
         return holdingRepository.findAll().stream()
                 .filter(h -> h.getAssetType().equals(assetType))
@@ -49,6 +54,7 @@ public class HoldingService {
     /**
      * 获取或创建现金持仓
      */
+    @Transactional(readOnly = true)
     public Holding getCashHolding() {
         List<Holding> cashHoldings = getHoldingsByAssetType("CASH");
         if (!cashHoldings.isEmpty()) {
@@ -100,6 +106,7 @@ public class HoldingService {
     /**
      * 获取现金余额
      */
+    @Transactional(readOnly = true)
     public BigDecimal getCashBalance() {
         Holding cash = getCashHolding();
         return new BigDecimal(cash.getVolume());
@@ -313,6 +320,7 @@ public class HoldingService {
         return false;
     }
 
+    @Transactional(readOnly = true)
     public PortfolioSummary getPortfolioSummary() {
         List<Holding> holdings = getAllHoldings();
 
