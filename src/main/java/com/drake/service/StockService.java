@@ -3,6 +3,7 @@ package com.drake.service;
 import com.drake.dto.StockInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class StockService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Cacheable(value = "stockInfo", key = "#ticker", unless = "#result.currentPrice.compareTo(BigDecimal.ZERO) == 0")
     public StockInfo getStockInfo(String ticker) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -64,6 +66,7 @@ public class StockService {
      * @param ticker 股票代码
      * @return 今日开盘价
      */
+    @Cacheable(value = "stockOpenPrice", key = "#ticker", unless = "#result == null || #result.compareTo(BigDecimal.ZERO) == 0")
     public BigDecimal getTodayOpenPrice(String ticker) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -83,6 +86,7 @@ public class StockService {
      * @param ticker 股票代码
      * @return 实时价格
      */
+    @Cacheable(value = "stockCurrentPrice", key = "#ticker", unless = "#result == null || #result.compareTo(BigDecimal.ZERO) == 0")
     public BigDecimal getCurrentPrice(String ticker) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -103,6 +107,7 @@ public class StockService {
      * @param date 日期，格式为 yyyy-MM-dd
      * @return 开盘价
      */
+    @Cacheable(value = "historicalOpenPrice", key = "#ticker + '_' + #date", unless = "#result.compareTo(BigDecimal.ZERO) == 0")
     public BigDecimal getHistoricalOpenPrice(String ticker, String date) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -127,6 +132,7 @@ public class StockService {
         }
     }
 
+    @Cacheable(value = "stockWithHistory", key = "#ticker + '_' + #range", unless = "#result.currentPrice.compareTo(BigDecimal.ZERO) == 0")
     public StockInfo getStockInfoWithHistory(String ticker, String range) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -632,6 +638,7 @@ public class StockService {
         return headers;
     }
 
+    @Cacheable(value = "stockSearch", key = "#query", unless = "#result.isEmpty()")
     public List<StockInfo> searchStocks(String query) {
         System.out.println("DEBUG: searchStocks called with query: " + query);
         
