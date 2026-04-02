@@ -272,7 +272,6 @@ async function displayStockDetails(stockInfo) {
     document.getElementById('highPrice').textContent = formatCurrency(stockInfo.high);
     document.getElementById('lowPrice').textContent = formatCurrency(stockInfo.low);
     document.getElementById('volume').textContent = formatNumber(stockInfo.volume);
-    document.getElementById('marketCap').textContent = formatCurrency(stockInfo.marketCap);
     document.getElementById('lastUpdated').textContent = formatDateTime(stockInfo.lastUpdated);
 
     // Show details section and hide search results

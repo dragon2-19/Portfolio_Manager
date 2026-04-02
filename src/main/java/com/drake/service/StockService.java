@@ -3,6 +3,7 @@ package com.drake.service;
 import com.drake.dto.StockInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -17,14 +18,15 @@ import java.util.List;
 @Service
 public class StockService {
 
-    // 新浪财经API（主要数据源）
-    private static final String SINA_REALTIME_URL = "http://hq.sinajs.cn/list=";
-    private static final String SINA_KLINE_URL = "http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData";
+    // 新浪财经 API（主要数据源）
+    private static final String SINA_REALTIME_URL = "https://hq.sinajs.cn/list=";
+    private static final String SINA_KLINE_URL = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData";
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Cacheable(value = "stockInfo", key = "#ticker", unless = "#result.currentPrice == null || #result.currentPrice.compareTo(T(java.math.BigDecimal).ZERO) == 0")
     public StockInfo getStockInfo(String ticker) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -64,6 +66,7 @@ public class StockService {
      * @param ticker 股票代码
      * @return 今日开盘价
      */
+    @Cacheable(value = "stockOpenPrice", key = "#ticker", unless = "#result == null || #result.compareTo(T(java.math.BigDecimal).ZERO) == 0")
     public BigDecimal getTodayOpenPrice(String ticker) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -83,6 +86,7 @@ public class StockService {
      * @param ticker 股票代码
      * @return 实时价格
      */
+    @Cacheable(value = "stockCurrentPrice", key = "#ticker", unless = "#result == null || #result.compareTo(T(java.math.BigDecimal).ZERO) == 0")
     public BigDecimal getCurrentPrice(String ticker) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -103,6 +107,7 @@ public class StockService {
      * @param date 日期，格式为 yyyy-MM-dd
      * @return 开盘价
      */
+    @Cacheable(value = "historicalOpenPrice", key = "#ticker + '_' + #date", unless = "#result.compareTo(T(java.math.BigDecimal).ZERO) == 0")
     public BigDecimal getHistoricalOpenPrice(String ticker, String date) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -127,6 +132,7 @@ public class StockService {
         }
     }
 
+    @Cacheable(value = "stockWithHistory", key = "#ticker + '_' + #range", unless = "#result.currentPrice == null || #result.currentPrice.compareTo(T(java.math.BigDecimal).ZERO) == 0")
     public StockInfo getStockInfoWithHistory(String ticker, String range) {
         try {
             String sinaCode = convertToSinaCode(ticker);
@@ -195,24 +201,23 @@ public class StockService {
     }
 
     /**
-     * 备用的新浪财经API方法（使用不同的请求方式）
+     * 备用的新浪财经 API 方法（使用不同的请求方式）
      */
     private StockInfo trySinaBackupMethod(String ticker, String sinaCode) {
         System.out.println("DEBUG: trySinaBackupMethod called for " + ticker + ", sinaCode: " + sinaCode);
-        
+            
         try {
-            // 使用更简单的URL和不同的参数
-            String url = "http://hq.sinajs.cn/list=" + sinaCode.toLowerCase();
+            // 使用 HTTPS 协议
+            String url = "https://hq.sinajs.cn/list=" + sinaCode.toLowerCase();
             System.out.println("DEBUG: Backup URL: " + url);
-
-            // 简化请求头
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("User-Agent", "Mozilla/5.0");
+    
+            // 使用完整的请求头
+            HttpHeaders headers = createHeaders();
             HttpEntity<String> entity = new HttpEntity<>(headers);
-
+    
             String response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class).getBody();
             System.out.println("DEBUG: Backup response length: " + (response != null ? response.length() : "null"));
-
+    
             return parseSinaStockInfoSimple(ticker, response);
         } catch (Exception e) {
             System.err.println("Sina backup method also failed for " + ticker + ": " + e.getMessage());
@@ -622,16 +627,21 @@ public class StockService {
     }
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0");
         headers.set("Accept", "*/*");
         headers.set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+        headers.set("Accept-Encoding", "gzip, deflate, br");
         headers.set("Referer", "https://finance.sina.com.cn/");
         headers.set("Connection", "keep-alive");
         headers.set("Cache-Control", "no-cache");
         headers.set("Pragma", "no-cache");
+        headers.set("Sec-Fetch-Dest", "empty");
+        headers.set("Sec-Fetch-Mode", "cors");
+        headers.set("Sec-Fetch-Site", "cross-site");
         return headers;
     }
 
+    @Cacheable(value = "stockSearch", key = "#query", unless = "#result.isEmpty()")
     public List<StockInfo> searchStocks(String query) {
         System.out.println("DEBUG: searchStocks called with query: " + query);
         
