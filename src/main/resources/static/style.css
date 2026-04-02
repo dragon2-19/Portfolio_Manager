@@ -947,9 +947,14 @@ tbody tr:last-child td {
     border-radius: 12px;
     font-size: 1em;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.9);
     color: #ffffff;
     backdrop-filter: blur(10px);
+}
+.form-group select option {
+    background: rgba(30, 41, 59, 0.95);
+    color: #ffffff;
+    padding: 12px;
 }
 
 .form-group input::placeholder {
