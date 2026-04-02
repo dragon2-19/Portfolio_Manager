@@ -23,217 +23,312 @@
             position: relative;
         }
 
-        /* 3D K线背景 */
-        .kline-background {
+        /* 3D K 线图表背景 */
+        .kline-chart-wrapper {
             position: fixed;
+            bottom: -5%;
+            left: 0;
+            right: 0;
+            height: 90vh;
+            z-index: 0;
+            perspective: 2000px;
+            overflow: hidden;
+        }
+
+        /* 粒子背景层 */
+        .particles-layer {
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-            perspective: 1000px;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.1) 1.5px, transparent 1.5px),
+                radial-gradient(circle at 60% 20%, rgba(102, 126, 234, 0.1) 1px, transparent 1px);
+            background-size: 100px 100px, 150px 150px, 200px 200px, 120px 120px;
+            animation: particlesFloat 20s linear infinite;
+            pointer-events: none;
         }
 
-        .kline-container {
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            display: flex;
-            align-items: flex-end;
-            gap: 15px;
-            padding: 0 50px;
-            animation: klineWave 20s linear infinite;
-            transform-style: preserve-3d;
-        }
-
-        @keyframes klineWave {
+        @keyframes particlesFloat {
             0% {
-                transform: translateX(0) rotateX(10deg) translateZ(0);
-            }
-            100% {
-                transform: translateX(-50%) rotateX(10deg) translateZ(0);
-            }
-        }
-
-        .kline-candle {
-            flex: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transform-style: preserve-3d;
-            animation: candleFloat 3s ease-in-out infinite;
-        }
-
-        .kline-candle:nth-child(odd) {
-            animation-delay: 0s;
-        }
-
-        .kline-candle:nth-child(even) {
-            animation-delay: 1.5s;
-        }
-
-        @keyframes candleFloat {
-            0%, 100% {
-                transform: translateY(0) translateZ(0);
+                transform: translateY(0) translateX(0);
             }
             50% {
-                transform: translateY(-15px) translateZ(20px);
+                transform: translateY(-30px) translateX(20px);
+            }
+            100% {
+                transform: translateY(0) translateX(0);
             }
         }
 
-        .candle-wick {
-            width: 3px;
+        /* 流光效果 */
+        .flowing-light {
             position: absolute;
-            filter: drop-shadow(0 0 10px currentColor);
-            box-shadow: 0 0 20px currentColor;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(102, 126, 234, 0.08) 20%, 
+                rgba(168, 85, 247, 0.08) 40%,
+                rgba(6, 182, 212, 0.08) 60%,
+                rgba(102, 126, 234, 0.08) 80%,
+                transparent 100%);
+            animation: flowingMove 12s linear infinite;
+            pointer-events: none;
         }
 
-        .candle-body {
-            width: 100%;
-            border-radius: 3px;
-            transition: all 0.3s ease;
+        @keyframes flowingMove {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(50%);
+            }
+        }
+
+        .kline-chart-container {
+            position: relative;
+            width: 75%;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(30, 41, 59, 0.85) 100%);
+            transform: rotateY(-12deg) translateZ(-80px);
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5% 0;
+            left: 50%;
+            transform: translateX(-50%) rotateY(-12deg);
+        }
+
+        .kline-chart-container::after {
+            content: '';
             position: absolute;
-            transform: translateZ(0);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.8), rgba(102, 126, 234, 0.8), transparent);
             box-shadow: 
-                0 0 20px currentColor,
-                0 10px 30px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                0 0 40px rgba(6, 182, 212, 0.6),
+                0 0 80px rgba(102, 126, 234, 0.4);
+            animation: bottomLineGlow 5s ease-in-out infinite;
         }
 
-        .candle-body.bullish {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            box-shadow: 
-                0 0 20px rgba(239, 68, 68, 0.6),
-                0 10px 30px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3),
-                0 0 40px rgba(239, 68, 68, 0.4);
+        @keyframes bottomLineGlow {
+            0%, 100% { 
+                opacity: 0.8;
+                box-shadow: 
+                    0 0 40px rgba(6, 182, 212, 0.6),
+                    0 0 80px rgba(102, 126, 234, 0.4);
+            }
+            50% { 
+                opacity: 1;
+                box-shadow: 
+                    0 0 60px rgba(6, 182, 212, 0.8),
+                    0 0 100px rgba(102, 126, 234, 0.6);
+            }
         }
 
-        .candle-body.bearish {
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            box-shadow: 
-                0 0 20px rgba(34, 197, 94, 0.6),
-                0 10px 30px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3),
-                0 0 40px rgba(34, 197, 94, 0.4);
-        }
-
-        .kline-candle:nth-child(odd) .candle-wick {
-            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
-        }
-
-        .kline-candle:nth-child(even) .candle-wick {
-            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
-        }
-
-        /* K线尺寸 - 波浪形 */
-        .kline-candle:nth-child(1) { height: 180px; }
-        .kline-candle:nth-child(1) .candle-wick { height: 40px; top: -20px; }
-        .kline-candle:nth-child(1) .candle-body { height: 100px; bottom: 40px; }
-
-        .kline-candle:nth-child(2) { height: 220px; }
-        .kline-candle:nth-child(2) .candle-wick { height: 50px; top: -25px; }
-        .kline-candle:nth-child(2) .candle-body { height: 120px; top: 40px; }
-
-        .kline-candle:nth-child(3) { height: 170px; }
-        .kline-candle:nth-child(3) .candle-wick { height: 35px; top: -17px; }
-        .kline-candle:nth-child(3) .candle-body { height: 90px; bottom: 45px; }
-
-        .kline-candle:nth-child(4) { height: 240px; }
-        .kline-candle:nth-child(4) .candle-wick { height: 60px; top: -30px; }
-        .kline-candle:nth-child(4) .candle-body { height: 140px; bottom: 20px; }
-
-        .kline-candle:nth-child(5) { height: 200px; }
-        .kline-candle:nth-child(5) .candle-wick { height: 45px; top: -22px; }
-        .kline-candle:nth-child(5) .candle-body { height: 110px; top: 35px; }
-
-        .kline-candle:nth-child(6) { height: 190px; }
-        .kline-candle:nth-child(6) .candle-wick { height: 55px; top: -27px; }
-        .kline-candle:nth-child(6) .candle-body { height: 150px; top: 35px; }
-
-        .kline-candle:nth-child(7) { height: 260px; }
-        .kline-candle:nth-child(7) .candle-wick { height: 40px; top: -20px; }
-        .kline-candle:nth-child(7) .candle-body { height: 130px; bottom: 40px; }
-
-        .kline-candle:nth-child(8) { height: 180px; }
-        .kline-candle:nth-child(8) .candle-wick { height: 45px; top: -22px; }
-        .kline-candle:nth-child(8) .candle-body { height: 115px; top: 35px; }
-
-        .kline-candle:nth-child(9) { height: 230px; }
-        .kline-candle:nth-child(9) .candle-wick { height: 50px; top: -25px; }
-        .kline-candle:nth-child(9) .candle-body { height: 140px; bottom: 40px; }
-
-        .kline-candle:nth-child(10) { height: 200px; }
-        .kline-candle:nth-child(10) .candle-wick { height: 40px; top: -20px; }
-        .kline-candle:nth-child(10) .candle-body { height: 120px; bottom: 40px; }
-
-        .kline-candle:nth-child(11) { height: 170px; }
-        .kline-candle:nth-child(11) .candle-wick { height: 45px; top: -22px; }
-        .kline-candle:nth-child(11) .candle-body { height: 100px; bottom: 45px; }
-
-        .kline-candle:nth-child(12) { height: 210px; }
-        .kline-candle:nth-child(12) .candle-wick { height: 50px; top: -25px; }
-        .kline-candle:nth-child(12) .candle-body { height: 120px; top: 40px; }
-
-        .kline-candle:nth-child(13) { height: 190px; }
-        .kline-candle:nth-child(13) .candle-wick { height: 35px; top: -17px; }
-        .kline-candle:nth-child(13) .candle-body { height: 90px; bottom: 45px; }
-
-        .kline-candle:nth-child(14) { height: 230px; }
-        .kline-candle:nth-child(14) .candle-wick { height: 55px; top: -27px; }
-        .kline-candle:nth-child(14) .candle-body { height: 140px; bottom: 20px; }
-
-        .kline-candle:nth-child(15) { height: 200px; }
-        .kline-candle:nth-child(15) .candle-wick { height: 45px; top: -22px; }
-        .kline-candle:nth-child(15) .candle-body { height: 110px; top: 35px; }
-
-        .kline-candle:nth-child(16) { height: 180px; }
-        .kline-candle:nth-child(16) .candle-wick { height: 40px; top: -20px; }
-        .kline-candle:nth-child(16) .candle-body { height: 100px; bottom: 40px; }
-
-        .kline-candle:nth-child(17) { height: 220px; }
-        .kline-candle:nth-child(17) .candle-wick { height: 50px; top: -25px; }
-        .kline-candle:nth-child(17) .candle-body { height: 120px; top: 40px; }
-
-        .kline-candle:nth-child(18) { height: 170px; }
-        .kline-candle:nth-child(18) .candle-wick { height: 35px; top: -17px; }
-        .kline-candle:nth-child(18) .candle-body { height: 90px; bottom: 45px; }
-
-        .kline-candle:nth-child(19) { height: 240px; }
-        .kline-candle:nth-child(19) .candle-wick { height: 60px; top: -30px; }
-        .kline-candle:nth-child(19) .candle-body { height: 140px; bottom: 20px; }
-
-        .kline-candle:nth-child(20) { height: 200px; }
-        .kline-candle:nth-child(20) .candle-wick { height: 45px; top: -22px; }
-        .kline-candle:nth-child(20) .candle-body { height: 110px; top: 35px; }
-
-        /* 网格线 */
-        .grid-lines {
+        .kline-chart-container::before {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            opacity: 0.1;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.8), rgba(168, 85, 247, 0.8), transparent);
+            box-shadow: 
+                0 0 40px rgba(102, 126, 234, 0.6),
+                0 0 80px rgba(168, 85, 247, 0.4);
+            animation: topLineGlow 4s ease-in-out infinite;
         }
 
-        .grid-line {
+        @keyframes topLineGlow {
+            0%, 100% { 
+                opacity: 0.8;
+                box-shadow: 
+                    0 0 40px rgba(102, 126, 234, 0.6),
+                    0 0 80px rgba(168, 85, 247, 0.4);
+            }
+            50% { 
+                opacity: 1;
+                box-shadow: 
+                    0 0 60px rgba(102, 126, 234, 0.8),
+                    0 0 100px rgba(168, 85, 247, 0.6);
+            }
+        }
+
+        .chart-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        .grid-line-h {
             position: absolute;
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.4), transparent);
         }
 
-        .grid-line:nth-child(1) { top: 20%; }
-        .grid-line:nth-child(2) { top: 40%; }
-        .grid-line:nth-child(3) { top: 60%; }
-        .grid-line:nth-child(4) { top: 80%; }
+        .grid-line-h:nth-child(1) { top: 10%; }
+        .grid-line-h:nth-child(2) { top: 30%; }
+        .grid-line-h:nth-child(3) { top: 50%; }
+        .grid-line-h:nth-child(4) { top: 70%; }
+        .grid-line-h:nth-child(5) { top: 90%; }
+
+        .grid-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+        }
+
+        .grid-line-v:nth-child(6) { left: 15%; }
+        .grid-line-v:nth-child(7) { left: 35%; }
+        .grid-line-v:nth-child(8) { left: 55%; }
+        .grid-line-v:nth-child(9) { left: 75%; }
+        .grid-line-v:nth-child(10) { left: 90%; }
+
+        /* 价格曲线容器 */
+        .price-curves-container {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 300%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            animation: rollercoasterScroll 25s linear infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes rollercoasterScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-33.33%);
+            }
+        }
+
+        .curve-canvas {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            transform-style: preserve-3d;
+        }
+
+        /* 价格蜡烛图 SVG */
+        .price-curve-svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+            transform-style: preserve-3d;
+        }
+
+        /* 蜡烛样式 */
+        .candle {
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .candle:hover {
+            transform: scale(1.15) translateZ(20px);
+            filter: drop-shadow(0 0 40px rgba(102, 126, 234, 1));
+            z-index: 100;
+        }
+
+        /* 影线 - 日 K 线图样式 */
+        .candle-wick {
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .candle-wick.bullish {
+            stroke: #ef4444;
+        }
+
+        .candle-wick.bearish {
+            stroke: #22c55e;
+        }
+
+        /* K 线实体 - 日 K 线图样式 */
+        .candle-body {
+            opacity: 1;
+        }
+        
+        .candle-body.bullish {
+            fill: #ef4444;
+            stroke: #dc2626;
+            stroke-width: 1px;
+        }
+        
+        .candle-body.bearish {
+            fill: #22c55e;
+            stroke: #16a34a;
+            stroke-width: 1px;
+        }
+
+        /* 均线样式 */
+        .ma-line {
+            stroke-width: 2.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .ma5 {
+            stroke: #fbbf24;  /* 金黄色 - MA5 */
+            filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+        }
+
+        .ma10 {
+            stroke: #3b82f6;  /* 蓝色 - MA10 */
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
+        }
+
+        /* 蜡烛动画效果 */
+        .candle {
+            animation: candlePulse 3s ease-in-out infinite;
+        }
+
+        .candle:nth-child(odd) {
+            animation-delay: 0s;
+        }
+
+        .candle:nth-child(even) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes candlePulse {
+            0%, 100% {
+                opacity: 0.88;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
 
         /* 主容器 */
         .main-container {
@@ -263,41 +358,47 @@
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+            50% { opacity: 0.85; }
         }
 
         .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
-            border-radius: 12px;
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #667eea 0%, #a855f7 50%, #06b6d4 100%);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8em;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+            font-size: 2em;
+            box-shadow: 
+                0 10px 40px rgba(102, 126, 234, 0.5),
+                0 0 60px rgba(168, 85, 247, 0.3);
         }
 
         .logo-text {
-            font-size: 1.8em;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            font-size: 2em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            letter-spacing: -0.5px;
+            letter-spacing: -1px;
+            text-shadow: 0 0 40px rgba(102, 126, 234, 0.4);
         }
 
         /* 中间内容 */
         .center-content {
             text-align: center;
-            animation: fadeInUp 1.2s ease both;
+            animation: fadeInUp 1.5s ease both;
+            position: relative;
+            z-index: 2;
+            margin-top: -100px;
         }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
             to {
                 opacity: 1;
@@ -308,60 +409,66 @@
         .center-subtitle {
             font-size: 1.8em;
             color: #94a3b8;
-            margin-bottom: 20px;
-            font-weight: 500;
-            letter-spacing: 2px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 3px;
             text-transform: uppercase;
             animation: fadeInUp 1s ease 0.3s both;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
         }
 
         .center-tagline {
-            font-size: 2.5em;
+            font-size: 5em;
             color: #cbd5e1;
-            margin-bottom: 60px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff 0%, #667eea 100%);
+            margin-bottom: 70px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, #667eea 50%, #a855f7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            letter-spacing: 3px;
-            text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+            letter-spacing: 4px;
+            line-height: 1.2;
+            text-shadow: 0 0 60px rgba(102, 126, 234, 0.5);
             animation: fadeInUp 1s ease 0.5s both;
         }
 
         .start-btn {
-            padding: 25px 80px;
-            background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
+            padding: 28px 100px;
+            background: linear-gradient(135deg, #667eea 0%, #a855f7 50%, #06b6d4 100%);
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             color: white;
-            font-size: 1.5em;
-            font-weight: 800;
+            font-size: 1.6em;
+            font-weight: 900;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 
-                0 15px 50px rgba(102, 126, 234, 0.5),
-                0 0 60px rgba(102, 126, 234, 0.3);
+                0 20px 60px rgba(102, 126, 234, 0.6),
+                0 0 80px rgba(102, 126, 234, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
             text-decoration: none;
             display: inline-block;
-            letter-spacing: 4px;
+            letter-spacing: 5px;
             text-transform: uppercase;
             position: relative;
             overflow: hidden;
             animation: fadeInUp 1s ease 0.7s both;
+            backdrop-filter: blur(10px);
         }
 
         .start-btn::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
         }
 
         .start-btn:active::before {
@@ -370,10 +477,11 @@
         }
 
         .start-btn:hover {
-            transform: translateY(-8px) scale(1.05);
+            transform: translateY(-10px) scale(1.08);
             box-shadow: 
-                0 25px 70px rgba(102, 126, 234, 0.7),
-                0 0 80px rgba(102, 126, 234, 0.5);
+                0 30px 80px rgba(102, 126, 234, 0.8),
+                0 0 100px rgba(102, 126, 234, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         /* 响应式设计 */
@@ -383,171 +491,391 @@
             }
 
             .center-tagline {
-                font-size: 2em;
-                margin-bottom: 50px;
+                font-size: 4em;
+                margin-bottom: 60px;
             }
 
             .start-btn {
-                padding: 20px 60px;
-                font-size: 1.3em;
+                padding: 24px 80px;
+                font-size: 1.4em;
             }
 
             .logo {
                 top: 20px;
+            }
+
+            .kline-chart-wrapper {
+                height: 60vh;
             }
         }
 
         @media (max-width: 768px) {
             .main-container {
                 padding: 0 20px;
+                justify-content: flex-start;
+                padding-top: 120px;
             }
 
             .logo-text {
-                font-size: 1.4em;
+                font-size: 1.5em;
             }
 
             .logo-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.4em;
+                width: 45px;
+                height: 45px;
+                font-size: 1.5em;
             }
 
             .center-subtitle {
-                font-size: 1.2em;
+                font-size: 1.3em;
+                margin-bottom: 20px;
             }
 
             .center-tagline {
-                font-size: 1.6em;
-                margin-bottom: 40px;
+                font-size: 3em;
+                margin-bottom: 50px;
+                letter-spacing: 3px;
             }
 
             .start-btn {
-                padding: 18px 50px;
-                font-size: 1.1em;
+                padding: 20px 60px;
+                font-size: 1.2em;
                 width: 100%;
             }
 
-            .kline-container {
-                gap: 10px;
+            .kline-chart-wrapper {
+                height: 50vh;
             }
         }
 
         @media (max-width: 480px) {
             .center-subtitle {
-                font-size: 1em;
+                font-size: 1.1em;
+                letter-spacing: 2px;
             }
 
             .center-tagline {
-                font-size: 1.3em;
-                margin-bottom: 35px;
+                font-size: 2.2em;
+                margin-bottom: 40px;
                 letter-spacing: 2px;
             }
 
             .start-btn {
-                padding: 16px 40px;
-                font-size: 1em;
+                padding: 18px 50px;
+                font-size: 1.1em;
             }
 
             .logo {
                 flex-direction: column;
-                gap: 8px;
+                gap: 10px;
+                top: 30px;
             }
 
-            .kline-container {
-                gap: 8px;
+            .kline-chart-wrapper {
+                height: 45vh;
             }
         }
     </style>
 </head>
 <body>
-    <!-- 3D K线背景 -->
-    <div class="kline-background">
-        <div class="grid-lines">
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-        </div>
-        <div class="kline-container">
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
+    <!-- 3D K线图表背景 -->
+    <div class="kline-chart-wrapper">
+        <div class="kline-chart-container">
+            <!-- 粒子层 -->
+            <div class="particles-layer"></div>
+            <!-- 流光效果 -->
+            <div class="flowing-light"></div>
+            <div class="chart-grid">
+                <div class="grid-line-h"></div>
+                <div class="grid-line-h"></div>
+                <div class="grid-line-h"></div>
+                <div class="grid-line-h"></div>
+                <div class="grid-line-h"></div>
+                <div class="grid-line-v"></div>
+                <div class="grid-line-v"></div>
+                <div class="grid-line-v"></div>
+                <div class="grid-line-v"></div>
+                <div class="grid-line-v"></div>
             </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bullish"></div>
-            </div>
-            <div class="kline-candle">
-                <div class="candle-wick"></div>
-                <div class="candle-body bearish"></div>
+            
+            <!-- 价格蜡烛图容器 -->
+            <div class="price-curves-container">
+                <!-- 第一组蜡烛图 -->
+                <div class="curve-canvas">
+                    <svg class="price-curve-svg" viewBox="0 0 1200 500" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="openGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="closeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#9333ea;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="highGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="lowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bullishGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+                                <stop offset="30%" style="stop-color:#ef4444;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
+                                <stop offset="70%" style="stop-color:#b91c1c;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bearishGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+                                <stop offset="30%" style="stop-color:#22c55e;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#16a34a;stop-opacity:1" />
+                                <stop offset="70%" style="stop-color:#15803d;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#14532d;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bullishTopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fca5a5;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bearishTopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#86efac;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bullishBottomGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#991b1b;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7f1d1d;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bearishBottomGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#14532d;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#052e16;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bullishWickGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="bearishWickGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.8" />
+                                <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.8" />
+                            </linearGradient>
+                            <!-- 3D 光影滤镜 -->
+                            <filter id="candleGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            <filter id="candleShadow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
+                            </filter>
+                        </defs>
+
+                        <!-- 连接线 -->
+                        <path class="candle-connection" d="M 65 130 Q 80 130 95 130" />
+                                                
+                        <!-- 蜡烛 1: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="50" y1="40" x2="50" y2="90" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="42" y="90" width="16" height="35" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="50" y1="125" x2="50" y2="190" />
+                        </g>
+                                                
+                        <!-- 蜡烛 2: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="110" y1="70" x2="110" y2="120" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="102" y="120" width="16" height="40" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="110" y1="160" x2="110" y2="230" />
+                        </g>
+                                                
+                        <!-- 蜡烛 3: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="170" y1="20" x2="170" y2="60" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="162" y="60" width="16" height="30" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="170" y1="90" x2="170" y2="150" />
+                        </g>
+                                                
+                        <!-- 蜡烛 4: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="230" y1="60" x2="230" y2="100" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="222" y="100" width="16" height="35" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="230" y1="135" x2="230" y2="195" />
+                        </g>
+                                                
+                        <!-- 蜡烛 5: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="290" y1="40" x2="290" y2="75" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="282" y="75" width="16" height="32" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="290" y1="107" x2="290" y2="165" />
+                        </g>
+                        
+                        <!-- 蜡烛 6: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="350" y1="70" x2="350" y2="115" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="342" y="115" width="16" height="45" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="350" y1="160" x2="350" y2="235" />
+                        </g>
+                        
+                        <!-- 蜡烛 7: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="410" y1="170" x2="410" y2="210" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="402" y="210" width="16" height="38" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="410" y1="248" x2="410" y2="310" />
+                        </g>
+                        
+                        <!-- 蜡烛 8: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="470" y1="185" x2="470" y2="225" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="462" y="225" width="16" height="33" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="470" y1="258" x2="470" y2="315" />
+                        </g>
+                        
+                        <!-- 蜡烛 9: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="530" y1="120" x2="530" y2="160" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="522" y="160" width="16" height="36" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="530" y1="196" x2="530" y2="255" />
+                        </g>
+                        
+                        <!-- 蜡烛 10: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="590" y1="55" x2="590" y2="95" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="582" y="95" width="16" height="42" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="590" y1="137" x2="590" y2="200" />
+                        </g>
+                        
+                        <!-- 蜡烛 11: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="650" y1="95" x2="650" y2="130" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="642" y="130" width="16" height="34" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="650" y1="164" x2="650" y2="220" />
+                        </g>
+                        
+                        <!-- 蜡烛 12: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="710" y1="145" x2="710" y2="185" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="702" y="185" width="16" height="43" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="710" y1="228" x2="710" y2="295" />
+                        </g>
+                        
+                        <!-- 蜡烛 13: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="770" y1="265" x2="770" y2="300" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="762" y="300" width="16" height="37" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="770" y1="337" x2="770" y2="395" />
+                        </g>
+                        
+                        <!-- 蜡烛 14: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="830" y1="285" x2="830" y2="320" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="822" y="320" width="16" height="31" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="830" y1="351" x2="830" y2="405" />
+                        </g>
+                        
+                        <!-- 蜡烛 15: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="890" y1="165" x2="890" y2="205" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="882" y="205" width="16" height="39" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="890" y1="244" x2="890" y2="305" />
+                        </g>
+                        
+                        <!-- 蜡烛 16: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="950" y1="115" x2="950" y2="155" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="942" y="155" width="16" height="36" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="950" y1="191" x2="950" y2="250" />
+                        </g>
+                        
+                        <!-- 蜡烛 17: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="1010" y1="85" x2="1010" y2="120" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="1002" y="120" width="16" height="35" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="1010" y1="155" x2="1010" y2="215" />
+                        </g>
+                        
+                        <!-- 蜡烛 18: 跌 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bearish" x1="1070" y1="135" x2="1070" y2="175" />
+                            <!-- K 线实体 (绿色) -->
+                            <rect class="candle-body bearish" x="1062" y="175" width="16" height="44" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bearish" x1="1070" y1="219" x2="1070" y2="285" />
+                        </g>
+                        
+                        <!-- 蜡烛 19: 涨 - 日 K 线 -->
+                        <g class="candle">
+                            <!-- 上影线 -->
+                            <line class="candle-wick bullish" x1="1130" y1="215" x2="1130" y2="250" />
+                            <!-- K 线实体 (红色) -->
+                            <rect class="candle-body bullish" x="1122" y="250" width="16" height="36" />
+                            <!-- 下影线 -->
+                            <line class="candle-wick bullish" x1="1130" y1="286" x2="1130" y2="345" />
+                        </g>
+
+                        <!-- MA5 均线 (金黄色) -->
+                        <path class="ma-line ma5" d="M 50 115 L 170 75 L 290 91 L 410 229 L 530 178 L 650 147 L 770 318 L 890 224 L 1010 137 L 1130 268" />
+
+                        <!-- MA10 均线 (蓝色) -->
+                        <path class="ma-line ma10" d="M 110 145 L 230 117 L 350 137 L 470 241 L 590 147 L 710 210 L 830 335 L 950 203 L 1070 202 L 1130 305" />
+                    </svg>
+                </div>
             </div>
         </div>
     </div>
@@ -557,13 +885,13 @@
         <!-- Logo -->
         <div class="logo">
             <div class="logo-icon">📊</div>
-            <div class="logo-text">Portfolio Pro</div>
+            <div class="logo-text">Metaphysical Asset Management</div>
         </div>
 
         <!-- 中间内容 -->
         <div class="center-content">
             <p class="center-subtitle">Next-Generation Intelligent Investment Platform</p>
-            <p class="center-tagline">Master Your Investment Future</p>
+            <p class="center-tagline">Master Your<br>Investment Future</p>
             <a href="dashboard.html" class="start-btn">START</a>
         </div>
     </div>
